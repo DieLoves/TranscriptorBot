@@ -273,6 +273,54 @@ class Repository:
             expected, "phase = ?, attempts = 0, quota_attempts = 0, error_code = NULL", (target,)
         )
 
+    async def track_asset(self, job_id: int, *, kind: str, path: str) -> None:
+        """Track I/O resources, including sources discovered during cancellation."""
+        if kind not in {"workspace", "telegram_cache"} or not path:
+            raise ValueError("Invalid asset")
+
+        def track(connection: sqlite3.Connection) -> None:
+            asset = connection.execute(
+                "INSERT INTO assets (kind, path) VALUES (?, ?) "
+                "ON CONFLICT(path) DO UPDATE SET path = excluded.path RETURNING id, kind",
+                (kind, path),
+            ).fetchone()
+            if asset[1] != kind:
+                raise ValueError("Asset kind mismatch")
+            connection.execute("INSERT OR IGNORE INTO job_assets VALUES (?, ?)", (job_id, asset[0]))
+
+        await self.database.transaction(track)
+
+    async def finish_download(self, expected: Job, manifest: dict) -> Job | None:
+        """Atomically record verified source metadata and enter preparation."""
+        if expected.phase != Phase.DOWNLOAD or manifest["job_id"] != expected.id:
+            raise ValueError("Invalid download result")
+
+        def finish(connection: sqlite3.Connection) -> Job | None:
+            cursor = connection.execute(
+                """UPDATE jobs SET phase = 'prepare', size_bytes = ?, duration_seconds = ?,
+                title = COALESCE(?, title), revision = revision + 1, updated_at = ?,
+                attempts = 0, error_code = NULL
+                WHERE id = ? AND revision = ? AND status = 'active'""",
+                (
+                    manifest["size_bytes"],
+                    manifest["duration_seconds"],
+                    manifest["title"],
+                    self.clock(),
+                    expected.id,
+                    expected.revision,
+                ),
+            )
+            if not cursor.rowcount:
+                return None
+            connection.execute(
+                "UPDATE assets SET sha256 = ?, size_bytes = ? WHERE path = ? AND id IN "
+                "(SELECT asset_id FROM job_assets WHERE job_id = ?)",
+                (manifest["sha256"], manifest["size_bytes"], manifest["path"], expected.id),
+            )
+            return read_job(connection, expected.id)
+
+        return await self.database.transaction(finish)
+
     async def defer(
         self, expected: Job, *, until: float, error_code: str, quota: bool = False
     ) -> Job | None:

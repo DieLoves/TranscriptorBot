@@ -7,7 +7,7 @@ import uuid
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-APP_IMAGE = "transcriptbot-app:stage3"
+APP_IMAGE = "transcriptbot-app:stage4"
 API_IMAGE = "transcriptbot-bot-api:stage1"
 TEST_ENV = """GROQ_API_KEY=gsk_container_test
 TELEGRAM_BOT_TOKEN=12345:container_test
@@ -211,6 +211,20 @@ def main() -> None:
                 database_check,
             )
             print("Shared volumes: worker can reopen bot's data directories")
+            download_check = Path(__file__).with_name("check_downloaders_offline.py").resolve()
+            result = docker(
+                "run",
+                "--rm",
+                *common,
+                *mounts,
+                "--volume",
+                f"{download_check}:/tmp/check_downloaders.py:ro",
+                "--entrypoint",
+                "python",
+                APP_IMAGE,
+                "/tmp/check_downloaders.py",
+            )
+            print(result.stdout.strip())
         finally:
             for name in containers:
                 docker("rm", "--force", name, check=False)
