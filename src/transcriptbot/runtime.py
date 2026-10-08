@@ -6,6 +6,9 @@ import signal
 
 from transcriptbot.bootstrap import Role
 from transcriptbot.config import Settings
+from transcriptbot.storage.database import Database
+from transcriptbot.storage.repository import Repository
+from transcriptbot.storage.worker_lock import WorkerLock
 
 logger = logging.getLogger(__name__)
 
@@ -16,14 +19,29 @@ async def serve(settings: Settings, role: Role) -> None:
     signals = (signal.SIGTERM, signal.SIGINT)
     for item in signals:
         loop.add_signal_handler(item, shutdown.set)
+    database = None
+    worker_lock = WorkerLock(settings.sqlite_path) if role == "worker" else None
     try:
+        if worker_lock is not None:
+            worker_lock.acquire()
+        database = await Database(settings.sqlite_path).open()
+        repository = Repository(
+            database,
+            max_user_jobs=settings.max_user_jobs,
+            max_queue_jobs=settings.max_queue_jobs,
+            failed_retention_days=settings.failed_retention_days,
+        )
         if role == "bot":
             from transcriptbot.telegram import run
         else:
             from transcriptbot.worker import run
         logger.info("role=%s event=ready phase=bootstrap", role)
-        await run(settings, shutdown)
+        await run(settings, shutdown, repository)
     finally:
+        if database is not None:
+            await database.close()
+        if worker_lock is not None:
+            worker_lock.release()
         for item in signals:
             loop.remove_signal_handler(item)
         logger.info("role=%s event=stopped", role)

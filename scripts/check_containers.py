@@ -7,7 +7,7 @@ import uuid
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-APP_IMAGE = "transcriptbot-app:stage1"
+APP_IMAGE = "transcriptbot-app:stage2"
 API_IMAGE = "transcriptbot-bot-api:stage1"
 TEST_ENV = """GROQ_API_KEY=gsk_container_test
 TELEGRAM_BOT_TOKEN=12345:container_test
@@ -126,6 +126,11 @@ def main() -> None:
             )
             assert api_state["ExitCode"] == 0 and not api_state["OOMKilled"]
             print("Bot API: local listener and SIGTERM passed without network access")
+            migration_mounts = ["--volume", f"{volumes[0]}:/data"]
+            for _ in range(2):
+                result = docker("run", "--rm", *common, *migration_mounts, APP_IMAGE, "migrate")
+                assert "Миграции SQLite применены" in result.stdout
+            print("SQLite: offline migrations applied and repeated on the shared volume")
             for role in ("bot", "worker"):
                 mounts = [
                     "--volume",
@@ -148,6 +153,19 @@ def main() -> None:
                     time.sleep(0.25)
                 else:
                     raise RuntimeError(f"Container did not become ready: {role}")
+                if role == "worker":
+                    duplicate = docker(
+                        "run",
+                        "--rm",
+                        *common,
+                        *mounts,
+                        APP_IMAGE,
+                        "worker",
+                        check=False,
+                    )
+                    assert duplicate.returncode == 2
+                    assert "Другой worker" in duplicate.stdout + duplicate.stderr
+                    print("Worker lock: a second worker cannot start on the shared volume")
                 docker("stop", "--time", "5", name)
                 state = json.loads(docker("inspect", "--format", "{{json .State}}", name).stdout)
                 assert state["ExitCode"] == 0 and not state["OOMKilled"]
@@ -158,6 +176,23 @@ def main() -> None:
                 print(f"{role}: environment checks and SIGTERM passed")
             # Verify that the shared volumes retained their ownership across processes.
             docker("run", "--rm", *common, *mounts, APP_IMAGE, "worker", "--check")
+            database_check = (
+                "import sqlite3; c = sqlite3.connect('/data/transcriptbot.sqlite3'); "
+                "assert c.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'; "
+                "assert c.execute('PRAGMA journal_mode').fetchone()[0] == 'wal'; "
+                "assert c.execute('SELECT COUNT(*) FROM schema_migrations').fetchone()[0] == 1"
+            )
+            docker(
+                "run",
+                "--rm",
+                *common,
+                *mounts,
+                "--entrypoint",
+                "python",
+                APP_IMAGE,
+                "-c",
+                database_check,
+            )
             print("Shared volumes: worker can reopen bot's data directories")
         finally:
             for name in containers:

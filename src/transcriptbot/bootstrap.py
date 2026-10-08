@@ -61,13 +61,17 @@ def check_environment(settings: Settings, role: Role) -> None:
             importlib.import_module(name)
         except ImportError:
             raise EnvironmentError(f"Не установлена зависимость: {name}") from None
-    check_directory(settings.sqlite_path.parent, create=True, writable=True)
-    if settings.sqlite_path.exists() and (
-        not settings.sqlite_path.is_file() or not os.access(settings.sqlite_path, os.R_OK | os.W_OK)
-    ):
-        raise EnvironmentError("База данных недоступна")
+    check_database_environment(settings)
     check_directory(settings.work_dir, create=True, writable=True)
     check_directory(settings.telegram_files_dir, create=False, writable=role == "worker")
     if role == "worker":
         for name in ("ffmpeg", "ffprobe", "deno"):
             check_executable(name)
+
+
+def check_database_environment(settings: Settings) -> None:
+    check_directory(settings.sqlite_path.parent, create=True, writable=True)
+    if settings.sqlite_path.exists() and (
+        not settings.sqlite_path.is_file() or not os.access(settings.sqlite_path, os.R_OK | os.W_OK)
+    ):
+        raise EnvironmentError("База данных недоступна")

@@ -71,6 +71,14 @@ def test_process_stops_cleanly(
     process_environment: dict[str, str],
     tmp_path: Path,
 ) -> None:
+    migration = subprocess.run(
+        [sys.executable, "-m", "transcriptbot", "migrate", "--env-file", "missing.env"],
+        cwd=tmp_path,
+        env=process_environment,
+        capture_output=True,
+        timeout=15,
+    )
+    assert migration.returncode == 0, migration.stderr.decode()
     with subprocess.Popen(
         [sys.executable, "-m", "transcriptbot", role, "--env-file", "missing.env"],
         cwd=tmp_path,
@@ -96,3 +104,42 @@ def test_process_stops_cleanly(
             if process.poll() is None:
                 process.kill()
                 process.wait(timeout=5)
+
+
+def test_migrate_command_is_offline_and_repeatable(
+    process_environment: dict[str, str],
+    tmp_path: Path,
+) -> None:
+    process_environment["PATH"] = "/nonexistent"
+    for _ in range(2):
+        migration = subprocess.run(
+            [sys.executable, "-m", "transcriptbot", "migrate", "--env-file", "missing.env"],
+            cwd=tmp_path,
+            env=process_environment,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        assert migration.returncode == 0, migration.stderr
+        assert "Миграции SQLite применены" in migration.stdout
+    assert Path(process_environment["SQLITE_PATH"]).is_file()
+
+
+@pytest.mark.parametrize("role", ["bot", "worker"])
+def test_startup_requires_explicit_migrations(
+    role: str,
+    process_environment: dict[str, str],
+    tmp_path: Path,
+) -> None:
+    process = subprocess.run(
+        [sys.executable, "-m", "transcriptbot", role, "--env-file", "missing.env"],
+        cwd=tmp_path,
+        env=process_environment,
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+    assert process.returncode == 2
+    assert "transcriptbot migrate" in process.stderr
+    assert "Traceback" not in process.stderr
+    assert "event=ready" not in process.stderr

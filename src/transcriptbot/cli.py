@@ -6,14 +6,24 @@ import logging
 import os
 from pathlib import Path
 
-from transcriptbot.bootstrap import EnvironmentError, check_environment
-from transcriptbot.config import ConfigurationError, load_settings
+from transcriptbot.bootstrap import (
+    EnvironmentError,
+    check_database_environment,
+    check_environment,
+)
+from transcriptbot.config import ConfigurationError, Settings, load_settings
 from transcriptbot.runtime import serve
+from transcriptbot.storage.database import Database, StorageError
+
+
+async def migrate(settings: Settings) -> None:
+    database = await Database(settings.sqlite_path).open(migrate=True)
+    await database.close()
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="TranscriptBot")
-    parser.add_argument("role", choices=("bot", "worker"))
+    parser.add_argument("role", choices=("bot", "worker", "migrate"))
     parser.add_argument("--env-file", type=Path, default=Path(".env"))
     parser.add_argument(
         "--check", action="store_true", help="Проверить настройки и окружение и выйти"
@@ -22,7 +32,10 @@ def main(argv: list[str] | None = None) -> int:
     os.umask(0o077)
     try:
         settings = load_settings(args.env_file)
-        check_environment(settings, args.role)
+        if args.role == "migrate":
+            check_database_environment(settings)
+        else:
+            check_environment(settings, args.role)
     except (ConfigurationError, EnvironmentError) as exc:
         parser.exit(2, f"{exc}\n")
     logging.basicConfig(
@@ -35,5 +48,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.check:
         print(f"Окружение {args.role} проверено")
         return 0
-    asyncio.run(serve(settings, args.role))
+    try:
+        if args.role == "migrate":
+            asyncio.run(migrate(settings))
+            print("Миграции SQLite применены")
+        else:
+            asyncio.run(serve(settings, args.role))
+    except StorageError as exc:
+        parser.exit(2, f"{exc}\n")
     return 0

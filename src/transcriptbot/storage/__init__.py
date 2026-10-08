@@ -1,1 +1,1 @@
-"""SQLite repository and migrations; implemented in stage 2."""
+"""SQLite/WAL persistence and the sequential job queue."""
