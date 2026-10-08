@@ -1,0 +1,26 @@
+FROM python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c AS build
+COPY deploy/debian.sources /etc/apt/sources.list.d/debian.sources
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates git cmake make g++ gperf libssl-dev zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# The TDLib submodule is pinned by this official server commit as well.
+RUN git clone https://github.com/tdlib/telegram-bot-api.git /source \
+    && git -C /source checkout --detach e3e9dd8e5b3d7ab8537cd5a10dc31d5ffa8f82d1 \
+    && git -C /source submodule update --init --recursive
+RUN cmake -S /source -B /build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/bot-api \
+    && cmake --build /build --target install --parallel 2
+
+FROM python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
+COPY deploy/debian.sources /etc/apt/sources.list.d/debian.sources
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates libssl3 zlib1g \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 10001 transcriptbot \
+    && useradd --uid 10001 --gid 10001 --no-create-home transcriptbot \
+    && install -d -m 0700 -o 10001 -g 10001 /telegram /telegram/tmp
+COPY --from=build /opt/bot-api/bin/telegram-bot-api /usr/local/bin/telegram-bot-api
+COPY --chmod=755 deploy/bot-api-entrypoint.sh /usr/local/bin/bot-api-entrypoint
+USER 10001:10001
+ENTRYPOINT ["bot-api-entrypoint"]
+CMD ["--local", "--http-ip-address=0.0.0.0", "--http-port=8081", "--dir=/telegram", "--temp-dir=/telegram/tmp", "--verbosity=0"]

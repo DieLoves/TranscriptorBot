@@ -1,0 +1,76 @@
+name: transcriptbot
+
+x-app: &app
+  image: transcriptbot-app:stage1
+  build:
+    context: .
+    dockerfile: Dockerfile
+  env_file: .env
+  environment:
+    TELEGRAM_BOT_API_BASE_URL: http://telegram-bot-api:8081
+    SQLITE_PATH: /data/transcriptbot.sqlite3
+    WORK_DIR: /work/jobs
+    TELEGRAM_FILES_DIR: /telegram
+  user: "10001:10001"
+  read_only: true
+  tmpfs:
+    - /tmp:mode=1777
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  restart: unless-stopped
+  stop_grace_period: 30s
+
+services:
+  bot:
+    <<: *app
+    command: [bot]
+    depends_on:
+      telegram-bot-api:
+        condition: service_started
+    volumes:
+      - data:/data
+      - work:/work
+      - telegram:/telegram:ro
+    networks: [backend]
+
+  worker:
+    <<: *app
+    command: [worker]
+    depends_on:
+      telegram-bot-api:
+        condition: service_started
+    volumes:
+      - data:/data
+      - work:/work
+      - telegram:/telegram
+    networks: [backend, egress]
+
+  telegram-bot-api:
+    image: transcriptbot-bot-api:stage1
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.bot-api
+    environment:
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID:?Set TELEGRAM_API_ID in .env}
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH:?Set TELEGRAM_API_HASH in .env}
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - telegram:/telegram
+    networks: [backend, egress]
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+volumes:
+  data:
+  work:
+  telegram:
+
+networks:
+  backend:
+    internal: true
+  egress:

@@ -1,0 +1,1 @@
+"""TranscriptBot application package."""
