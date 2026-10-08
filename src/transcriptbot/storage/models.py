@@ -42,6 +42,7 @@ class Job:
     owner_id: int
     chat_id: int
     message_id: int
+    source_message_id: int | None
     topic_id: int | None
     source_kind: SourceKind
     source_ref: str = field(repr=False)

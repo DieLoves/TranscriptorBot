@@ -117,39 +117,59 @@ class Repository:
         source: SourceRef,
         topic_id: int | None = None,
     ) -> UpdateResult:
-        if update_id < 0 or owner_id <= 0 or message_id <= 0 or not source.reference:
+        if update_id < 0:
+            raise ValueError("Invalid update ID")
+        return await self.database.transaction(
+            lambda connection: self._update(
+                connection,
+                update_id,
+                lambda: self.create_job_in_transaction(
+                    connection,
+                    owner_id=owner_id,
+                    chat_id=chat_id,
+                    message_id=message_id,
+                    source=source,
+                    topic_id=topic_id,
+                ),
+            )
+        )
+
+    def create_job_in_transaction(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        owner_id: int,
+        chat_id: int,
+        message_id: int,
+        source: SourceRef,
+        topic_id: int | None = None,
+    ) -> UpdateResult:
+        if owner_id <= 0 or message_id <= 0 or not source.reference:
             raise ValueError("Invalid request metadata")
-
-        def create(connection: sqlite3.Connection) -> UpdateResult:
-            def operation() -> UpdateResult:
-                if limit := self._limit(connection, owner_id):
-                    return UpdateResult(limit, None)
-                now = self.clock()
-                sequence = self._sequence(connection)
-                job_id = connection.execute(
-                    """INSERT INTO jobs
-                    (owner_id, chat_id, message_id, topic_id, source_kind, source_ref, title,
-                     model, queue_no, status, phase, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 'whisper-large-v3-turbo', ?, 'queued',
-                            'download', ?, ?) RETURNING id""",
-                    (
-                        owner_id,
-                        chat_id,
-                        message_id,
-                        topic_id,
-                        source.kind,
-                        source.reference,
-                        source.title,
-                        sequence,
-                        now,
-                        now,
-                    ),
-                ).fetchone()[0]
-                return UpdateResult("created", job_id, self._position(connection, sequence))
-
-            return self._update(connection, update_id, operation)
-
-        return await self.database.transaction(create)
+        if limit := self._limit(connection, owner_id):
+            return UpdateResult(limit, None)
+        now = self.clock()
+        sequence = self._sequence(connection)
+        job_id = connection.execute(
+            """INSERT INTO jobs
+            (owner_id, chat_id, message_id, topic_id, source_kind, source_ref, title,
+             model, queue_no, status, phase, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'whisper-large-v3-turbo', ?, 'queued',
+                    'download', ?, ?) RETURNING id""",
+            (
+                owner_id,
+                chat_id,
+                message_id,
+                topic_id,
+                source.kind,
+                source.reference,
+                source.title,
+                sequence,
+                now,
+                now,
+            ),
+        ).fetchone()[0]
+        return UpdateResult("created", job_id, self._position(connection, sequence))
 
     async def record_rejection(self, update_id: int, outcome: str) -> UpdateResult:
         """Remember a rejected/ignored update; Telegram offset is managed separately."""
@@ -341,29 +361,46 @@ class Repository:
         generation: int,
         group_chat_id: int | None = None,
     ) -> UpdateResult:
-        def cancel(connection: sqlite3.Connection) -> UpdateResult:
-            def operation() -> UpdateResult:
-                now = self.clock()
-                cursor = connection.execute(
-                    f"""UPDATE jobs SET status = 'cancelled', revision = revision + 1,
-                    updated_at = ?, finished_at = ?, next_attempt_at = NULL,
-                    resumable = 0, cleanup_pending = 1
-                    WHERE id = ? AND owner_id = ? AND generation = ?
-                    AND (? IS NULL OR chat_id = ?) AND status IN {UNFINISHED}""",
-                    (now, now, job_id, owner_id, generation, group_chat_id, group_chat_id),
-                )
-                if not cursor.rowcount:
-                    return UpdateResult("unavailable", None)
-                connection.execute(
-                    "UPDATE outbox SET status = 'cancelled' "
-                    "WHERE job_id = ? AND status = 'pending'",
-                    (job_id,),
-                )
-                return UpdateResult("cancelled", job_id)
+        return await self.database.transaction(
+            lambda connection: self._update(
+                connection,
+                update_id,
+                lambda: self.cancel_in_transaction(
+                    connection,
+                    job_id=job_id,
+                    owner_id=owner_id,
+                    generation=generation,
+                    group_chat_id=group_chat_id,
+                ),
+            )
+        )
 
-            return self._update(connection, update_id, operation)
-
-        return await self.database.transaction(cancel)
+    def cancel_in_transaction(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        job_id: int,
+        owner_id: int,
+        generation: int,
+        group_chat_id: int | None = None,
+    ) -> UpdateResult:
+        now = self.clock()
+        cursor = connection.execute(
+            f"""UPDATE jobs SET status = 'cancelled', revision = revision + 1,
+            updated_at = ?, finished_at = ?, next_attempt_at = NULL,
+            resumable = 0, cleanup_pending = 1
+            WHERE id = ? AND owner_id = ? AND generation = ?
+            AND (? IS NULL OR chat_id = ?) AND status IN {UNFINISHED}""",
+            (now, now, job_id, owner_id, generation, group_chat_id, group_chat_id),
+        )
+        if not cursor.rowcount:
+            return UpdateResult("unavailable", None)
+        connection.execute(
+            "UPDATE outbox SET status = 'cancelled' WHERE job_id = ? "
+            "AND status = 'pending' AND operation != 'status'",
+            (job_id,),
+        )
+        return UpdateResult("cancelled", job_id)
 
     async def resume(
         self,
@@ -374,35 +411,56 @@ class Repository:
         generation: int,
         group_chat_id: int | None = None,
     ) -> UpdateResult:
-        def resume(connection: sqlite3.Connection) -> UpdateResult:
-            def operation() -> UpdateResult:
-                job = read_job(connection, job_id)
-                now = self.clock()
-                if (
-                    job is None
-                    or job.owner_id != owner_id
-                    or job.generation != generation
-                    or (group_chat_id is not None and job.chat_id != group_chat_id)
-                    or job.status != JobStatus.FAILED
-                    or not job.resumable
-                    or job.retention_until <= now
-                ):
-                    return UpdateResult("unavailable", None)
-                if limit := self._limit(connection, owner_id):
-                    return UpdateResult(limit, job_id)
-                sequence = self._sequence(connection)
-                connection.execute(
-                    """UPDATE jobs SET status = 'queued', queue_no = ?, revision = revision + 1,
-                    generation = generation + 1, attempts = 0, quota_attempts = 0,
-                    next_attempt_at = NULL, error_code = NULL, updated_at = ?, finished_at = NULL,
-                    retention_until = NULL WHERE id = ? AND revision = ? AND status = 'failed'""",
-                    (sequence, now, job_id, job.revision),
-                )
-                return UpdateResult("resumed", job_id, self._position(connection, sequence))
+        return await self.database.transaction(
+            lambda connection: self._update(
+                connection,
+                update_id,
+                lambda: self.resume_in_transaction(
+                    connection,
+                    job_id=job_id,
+                    owner_id=owner_id,
+                    generation=generation,
+                    group_chat_id=group_chat_id,
+                ),
+            )
+        )
 
-            return self._update(connection, update_id, operation)
-
-        return await self.database.transaction(resume)
+    def resume_in_transaction(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        job_id: int,
+        owner_id: int,
+        generation: int,
+        group_chat_id: int | None = None,
+    ) -> UpdateResult:
+        job = read_job(connection, job_id)
+        now = self.clock()
+        if (
+            job is None
+            or job.owner_id != owner_id
+            or job.generation != generation
+            or (group_chat_id is not None and job.chat_id != group_chat_id)
+            or job.status != JobStatus.FAILED
+            or not job.resumable
+            or job.retention_until <= now
+        ):
+            return UpdateResult("unavailable", None)
+        if limit := self._limit(connection, owner_id):
+            return UpdateResult(limit, job_id)
+        sequence = self._sequence(connection)
+        connection.execute(
+            """UPDATE jobs SET status = 'queued', queue_no = ?, revision = revision + 1,
+            generation = generation + 1, attempts = 0, quota_attempts = 0,
+            next_attempt_at = NULL, error_code = NULL, updated_at = ?, finished_at = NULL,
+            retention_until = NULL WHERE id = ? AND revision = ? AND status = 'failed'""",
+            (sequence, now, job_id, job.revision),
+        )
+        connection.execute(
+            "UPDATE outbox SET status = 'cancelled' WHERE job_id = ? AND status = 'pending'",
+            (job_id,),
+        )
+        return UpdateResult("resumed", job_id, self._position(connection, sequence))
 
     async def plan_chunks(self, expected: Job, boundaries: list[tuple[int, int]]) -> bool:
         if (

@@ -87,7 +87,7 @@ async def test_migrations_are_required_and_idempotent(tmp_path: Path) -> None:
             await first.call(
                 lambda c: c.execute("SELECT COUNT(*) FROM schema_migrations").fetchone()[0]
             )
-            == 1
+            == 2
         )
         assert (
             await second.call(lambda c: c.execute("SELECT value FROM queue_sequence").fetchone()[0])

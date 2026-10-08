@@ -14,6 +14,7 @@ from transcriptbot.bootstrap import (
 from transcriptbot.config import ConfigurationError, Settings, load_settings
 from transcriptbot.runtime import serve
 from transcriptbot.storage.database import Database, StorageError
+from transcriptbot.telegram.polling import TelegramRuntimeError
 
 
 async def migrate(settings: Settings) -> None:
@@ -54,6 +55,6 @@ def main(argv: list[str] | None = None) -> int:
             print("Миграции SQLite применены")
         else:
             asyncio.run(serve(settings, args.role))
-    except StorageError as exc:
+    except (StorageError, TelegramRuntimeError) as exc:
         parser.exit(2, f"{exc}\n")
     return 0
