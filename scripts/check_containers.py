@@ -7,7 +7,7 @@ import uuid
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-APP_IMAGE = "transcriptbot-app:stage5"
+APP_IMAGE = "transcriptbot-app:stage6"
 API_IMAGE = "transcriptbot-bot-api:stage1"
 TEST_ENV = """GROQ_API_KEY=gsk_container_test
 TELEGRAM_BOT_TOKEN=12345:container_test
@@ -131,6 +131,43 @@ def main() -> None:
                 result = docker("run", "--rm", *common, *migration_mounts, APP_IMAGE, "migrate")
                 assert "Миграции SQLite применены" in result.stdout
             print("SQLite: offline migrations applied and repeated on the shared volume")
+            copied = docker(
+                "run",
+                "--rm",
+                *common,
+                *migration_mounts,
+                APP_IMAGE,
+                "backup",
+                "--output",
+                "/data/snapshot.sqlite3",
+            )
+            assert "создана и проверена" in copied.stdout
+            restored = docker(
+                "run",
+                "--rm",
+                *common,
+                *migration_mounts,
+                "--env",
+                "SQLITE_PATH=/data/restored.sqlite3",
+                APP_IMAGE,
+                "restore",
+                "--input",
+                "/data/snapshot.sqlite3",
+            )
+            assert "восстановлена и проверена" in restored.stdout
+            duplicate_backup = docker(
+                "run",
+                "--rm",
+                *common,
+                *migration_mounts,
+                APP_IMAGE,
+                "backup",
+                "--output",
+                "/data/snapshot.sqlite3",
+                check=False,
+            )
+            assert duplicate_backup.returncode == 2
+            print("SQLite CLI: backup/restore and refusal to overwrite an existing snapshot")
             telegram_check = Path(__file__).with_name("check_telegram_offline.py").resolve()
             result = docker(
                 "run",
@@ -183,6 +220,8 @@ def main() -> None:
                     assert duplicate.returncode == 2
                     assert "Другой worker" in duplicate.stdout + duplicate.stderr
                     print("Worker lock: a second worker cannot start on the shared volume")
+                healthy = docker("exec", name, "transcriptbot", "healthcheck", "--service", role)
+                assert json.loads(healthy.stdout)["healthy"]
                 docker("stop", "--time", "5", name)
                 state = json.loads(docker("inspect", "--format", "{{json .State}}", name).stdout)
                 assert state["ExitCode"] == 0 and not state["OOMKilled"]
@@ -197,7 +236,7 @@ def main() -> None:
                 "import sqlite3; c = sqlite3.connect('/data/transcriptbot.sqlite3'); "
                 "assert c.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'; "
                 "assert c.execute('PRAGMA journal_mode').fetchone()[0] == 'wal'; "
-                "assert c.execute('SELECT COUNT(*) FROM schema_migrations').fetchone()[0] == 3"
+                "assert c.execute('SELECT COUNT(*) FROM schema_migrations').fetchone()[0] == 4"
             )
             docker(
                 "run",
@@ -223,6 +262,20 @@ def main() -> None:
                 "python",
                 APP_IMAGE,
                 "/tmp/check_downloaders.py",
+            )
+            print(result.stdout.strip())
+            operations_check = Path(__file__).with_name("check_operations_offline.py").resolve()
+            result = docker(
+                "run",
+                "--rm",
+                *common,
+                *mounts,
+                "--volume",
+                f"{operations_check}:/tmp/check_operations.py:ro",
+                "--entrypoint",
+                "python",
+                APP_IMAGE,
+                "/tmp/check_operations.py",
             )
             print(result.stdout.strip())
             media_check = Path(__file__).with_name("check_media_offline.py").resolve()

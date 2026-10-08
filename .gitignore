@@ -21,6 +21,7 @@ htmlcov/
 
 # Runtime data and logs
 var/
+backups/
 *.log
 
 # OS files

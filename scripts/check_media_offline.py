@@ -12,9 +12,11 @@ from transcriptbot.downloaders.files import source_manifest
 from transcriptbot.groq_adapter import GroqAdapter
 from transcriptbot.media.artifacts import read_json
 from transcriptbot.media.service import MediaPipeline
+from transcriptbot.operations.cleanup import Cleanup
 from transcriptbot.storage.database import Database
 from transcriptbot.storage.models import SourceKind, SourceRef
 from transcriptbot.storage.repository import Repository
+from transcriptbot.telegram.store import TelegramStore
 from transcriptbot.worker import process_job
 
 
@@ -100,6 +102,7 @@ async def main() -> None:
             await database.close()
             database = await Database(settings.sqlite_path).open()
             repository = Repository(database)
+            await Cleanup(settings, repository).run(startup=True)
             pipeline = MediaPipeline(settings, repository, groq)
             await pipeline.step(await repository.claim_next())
             assert len(calls) == 1
@@ -134,6 +137,20 @@ async def main() -> None:
                 "Media/Groq: exact samples, SDK multipart, checkpoint crash recovery, "
                 "global times and delivery handoff"
             )
+            store = TelegramStore(repository)
+            for number, kind in enumerate(("preview", "txt", "json")):
+                operation = await database.call(
+                    lambda c, kind=kind: dict(
+                        c.execute("SELECT * FROM outbox WHERE operation = ?", (kind,)).fetchone()
+                    )
+                )
+                await store.confirm(operation, number + 1)
+            await store.refresh_statuses()
+            await Cleanup(settings, repository).run(startup=True)
+            assert not directory.exists() and len(calls) == 3
+            history = await repository.get_job(job.id, owner_id=12345)
+            assert history.status == "completed" and not history.cleanup_pending
+            print("Delivery cleanup: all content removed, history retained, no repeated Groq")
         finally:
             await database.close()
             await groq.close()

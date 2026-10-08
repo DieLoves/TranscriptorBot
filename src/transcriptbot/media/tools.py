@@ -99,7 +99,9 @@ async def run_tool(
         for task in tasks:
             task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
-        await process.wait()
+        # The group is stopped; drain its bounded remaining pipe buffers and close transports.
+        # wait() alone can leave paused pipes alive past the event loop's lifetime.
+        await process.communicate()
 
 
 async def analyze(source: Path, stream: int, settings: Settings) -> list[ChunkPlan]:

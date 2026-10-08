@@ -288,6 +288,7 @@ class Repository:
             if asset[1] != kind:
                 raise ValueError("Asset kind mismatch")
             connection.execute("INSERT OR IGNORE INTO job_assets VALUES (?, ?)", (job_id, asset[0]))
+            connection.execute("UPDATE assets SET cleanup_pending = 0 WHERE id = ?", (asset[0],))
 
         await self.database.transaction(track)
 
@@ -654,4 +655,104 @@ class Repository:
                     "SELECT * FROM chunks WHERE job_id = ? ORDER BY number", (job_id,)
                 )
             ]
+        )
+
+    async def retained_jobs(self) -> list[Job]:
+        return await self.database.call(
+            lambda c: [
+                job_from_row(row)
+                for row in c.execute(
+                    "SELECT * FROM jobs WHERE status NOT IN ('cancelled', 'completed') "
+                    "AND cleanup_pending = 0 ORDER BY id"
+                )
+            ]
+        )
+
+    async def cleanup_jobs(self) -> list[Job]:
+        return await self.database.call(
+            lambda c: [
+                job_from_row(row)
+                for row in c.execute("SELECT * FROM jobs WHERE cleanup_pending = 1 ORDER BY id")
+            ]
+        )
+
+    async def expire_failed(self) -> None:
+        def expire(c):
+            c.execute(
+                "UPDATE jobs SET resumable = 0, cleanup_pending = 1, revision = revision + 1, "
+                "updated_at = ? WHERE status = 'failed' AND retention_until <= ? "
+                "AND resumable = 1",
+                (self.clock(), self.clock()),
+            )
+            c.execute(
+                "UPDATE outbox SET status = 'cancelled' WHERE status = 'pending' "
+                "AND operation != 'status' AND job_id IN "
+                "(SELECT id FROM jobs WHERE cleanup_pending = 1)"
+            )
+
+        await self.database.transaction(expire)
+
+    async def job_assets(self, job_id: int) -> list[dict]:
+        return await self.database.call(
+            lambda c: [
+                dict(row)
+                for row in c.execute(
+                    "SELECT a.* FROM assets a JOIN job_assets j ON a.id = j.asset_id "
+                    "WHERE j.job_id = ?",
+                    (job_id,),
+                )
+            ]
+        )
+
+    async def cache_used_elsewhere(self, job_id: int, asset_id: int) -> bool:
+        def used(c):
+            # A queued request for the same file ID already needs this cached resource.
+            c.execute(
+                "INSERT OR IGNORE INTO job_assets (job_id, asset_id) "
+                "SELECT id, ? FROM jobs WHERE id != ? AND source_kind = 'telegram' "
+                "AND source_ref = (SELECT source_ref FROM jobs WHERE id = ?) "
+                "AND cleanup_pending = 0 AND (status IN "
+                "('queued', 'active', 'retry_wait', 'quota_wait') OR "
+                "(status = 'failed' AND resumable = 1))",
+                (asset_id, job_id, job_id),
+            )
+            return bool(
+                c.execute(
+                    "SELECT 1 FROM job_assets ja JOIN jobs j ON ja.job_id = j.id "
+                    "WHERE ja.asset_id = ? AND j.id != ? AND j.cleanup_pending = 0 LIMIT 1",
+                    (asset_id, job_id),
+                ).fetchone()
+            )
+
+        return await self.database.transaction(used)
+
+    async def finish_cleanup(self, expected: Job) -> None:
+        def finish(c):
+            job = read_job(c, expected.id)
+            if job is None or not job.cleanup_pending or job.revision != expected.revision:
+                return
+            c.execute("DELETE FROM chunks WHERE job_id = ?", (job.id,))
+            c.execute("DELETE FROM job_assets WHERE job_id = ?", (job.id,))
+            c.execute(
+                "DELETE FROM assets WHERE NOT EXISTS "
+                "(SELECT 1 FROM job_assets WHERE asset_id = assets.id)"
+            )
+            c.execute("UPDATE outbox SET artifact_path = NULL WHERE job_id = ?", (job.id,))
+            c.execute(
+                "UPDATE jobs SET cleanup_pending = 0, updated_at = ? WHERE id = ?",
+                (self.clock(), job.id),
+            )
+
+        await self.database.transaction(finish)
+
+    async def reconciliation_failed(self, expected: Job) -> None:
+        now = self.clock()
+        await self.database.transaction(
+            lambda c: c.execute(
+                "UPDATE jobs SET status = 'failed', next_attempt_at = NULL, "
+                "error_code = 'recovery_files', revision = revision + 1, updated_at = ?, "
+                "finished_at = ?, retention_until = ? WHERE id = ? AND revision = ? "
+                "AND status IN ('queued', 'active', 'retry_wait', 'quota_wait')",
+                (now, now, now + self.retention_seconds, expected.id, expected.revision),
+            )
         )

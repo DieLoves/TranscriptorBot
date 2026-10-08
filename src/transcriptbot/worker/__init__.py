@@ -14,7 +14,8 @@ from transcriptbot.downloaders.service import SourceDownloader
 from transcriptbot.groq_adapter import GroqAdapter
 from transcriptbot.media.errors import PipelineError
 from transcriptbot.media.service import MediaPipeline
-from transcriptbot.storage.models import Job, JobStatus, Phase
+from transcriptbot.operations.cleanup import Cleanup
+from transcriptbot.storage.models import Job, JobStatus, Phase, SourceKind
 from transcriptbot.storage.repository import Repository
 
 logger = logging.getLogger(__name__)
@@ -54,6 +55,8 @@ async def download_job(job: Job, downloader, repository: Repository, shutdown: a
 
 
 async def run(settings: Settings, shutdown: asyncio.Event, repository: Repository) -> None:
+    cleanup = Cleanup(settings, repository)
+    await cleanup.run(startup=True)
     if job := await repository.active_job():
         logger.info("job_id=%s event=recovered phase=%s status=%s", job.id, job.phase, job.status)
     session = AiohttpSession(
@@ -64,19 +67,42 @@ async def run(settings: Settings, shutdown: asyncio.Event, repository: Repositor
         downloader = SourceDownloader(settings, repository, bot)
         groq = GroqAdapter(settings, clock=repository.clock)
         pipeline = MediaPipeline(settings, repository, groq)
-        try:
+
+        async def work():
             while not shutdown.is_set():
                 job = await repository.claim_next()
                 if job is not None:
-                    if job.phase == Phase.DOWNLOAD:
-                        await download_job(job, downloader, repository, shutdown)
-                        continue
-                    await process_job(job, pipeline, repository, shutdown)
+                    cleanup.busy.add(job.id)
+                    if job.phase == Phase.DOWNLOAD and job.source_kind == SourceKind.TELEGRAM:
+                        cleanup.cache_busy.add(job.id)
+                    try:
+                        if job.phase == Phase.DOWNLOAD:
+                            await download_job(job, downloader, repository, shutdown)
+                            continue
+                        await process_job(job, pipeline, repository, shutdown)
+                    finally:
+                        cleanup.busy.discard(job.id)
+                        cleanup.cache_busy.discard(job.id)
                     if job.phase != Phase.DELIVER:
                         continue
                 with suppress(TimeoutError):
                     await asyncio.wait_for(shutdown.wait(), timeout=0.5)
+
+        async def maintain():
+            while not shutdown.is_set():
+                await cleanup.run()
+                with suppress(TimeoutError):
+                    await asyncio.wait_for(shutdown.wait(), timeout=0.5)
+
+        tasks = [asyncio.create_task(work()), asyncio.create_task(maintain())]
+        try:
+            done, _ = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            for task in done:
+                task.result()
         finally:
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
             await groq.close()
 
 

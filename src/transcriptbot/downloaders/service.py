@@ -68,7 +68,8 @@ async def child_process(payload: dict, timeout: float) -> None:
         # Kill the whole session, including FFprobe/Deno, before cleanup can start.
         with suppress(ProcessLookupError):
             os.killpg(process.pid, signal.SIGKILL)
-        await process.wait()
+        # No writers remain; drain buffered output before allowing file cleanup.
+        await process.communicate()
 
 
 class SourceDownloader:

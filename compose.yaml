@@ -1,7 +1,7 @@
 name: transcriptbot
 
 x-app: &app
-  image: transcriptbot-app:stage5
+  image: transcriptbot-app:stage6
   build:
     context: .
     dockerfile: Dockerfile
@@ -24,6 +24,12 @@ services:
   bot:
     <<: *app
     command: [bot]
+    healthcheck:
+      test: [CMD, transcriptbot, healthcheck, --service, bot]
+      interval: 30s
+      timeout: 15s
+      start_period: 60s
+      retries: 3
     depends_on:
       telegram-bot-api:
         condition: service_started
@@ -36,6 +42,12 @@ services:
   worker:
     <<: *app
     command: [worker]
+    healthcheck:
+      test: [CMD, transcriptbot, healthcheck, --service, worker]
+      interval: 30s
+      timeout: 15s
+      start_period: 60s
+      retries: 3
     depends_on:
       telegram-bot-api:
         condition: service_started
@@ -64,6 +76,11 @@ services:
     networks: [backend, egress]
     restart: unless-stopped
     stop_grace_period: 30s
+    healthcheck:
+      test: [CMD, python3, -c, "import socket; socket.create_connection(('127.0.0.1', 8081), 5).close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   data:
