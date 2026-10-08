@@ -38,7 +38,10 @@ def validate_url(value: str, *, mailru: bool = False) -> str:
         if mailru and (
             url.scheme != "https"
             or port not in {None, 443}
-            or not (host == "cloud.mail.ru" or host.endswith(".cloud.mail.ru"))
+            or not any(
+                host == domain or host.endswith("." + domain)
+                for domain in ("cloud.mail.ru", "datacloudmail.ru")
+            )
         ):
             raise ValueError
     except (ValueError, UnicodeError):

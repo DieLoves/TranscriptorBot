@@ -76,6 +76,10 @@ def test_bad_urls(url):
         "https://mail.ru/a",
         "https://cloclo.cloud.mail.ru:444/a",
         "https://8.8.8.8/a",
+        "http://cloclo50.datacloudmail.ru/a",
+        "https://datacloudmail.ru.evil.test/a",
+        "https://evildatacloudmail.ru/a",
+        "https://cloclo50.datacloudmail.ru:444/a",
     ],
 )
 def test_mailru_domain_policy(url):
@@ -83,8 +87,12 @@ def test_mailru_domain_policy(url):
         validate_url(url, mailru=True)
 
 
-def test_mailru_subdomain():
-    assert validate_url("https://cloclo61.cloud.mail.ru/a", mailru=True) == "cloclo61.cloud.mail.ru"
+@pytest.mark.parametrize(
+    "host",
+    ["cloud.mail.ru", "cloclo61.cloud.mail.ru", "datacloudmail.ru", "cloclo50.datacloudmail.ru"],
+)
+def test_mailru_subdomain(host):
+    assert validate_url("https://" + host + "/a", mailru=True) == host
 
 
 def answers(*addresses):
@@ -223,6 +231,35 @@ def test_mailru_redirect_cannot_escape_allowlist():
     with pytest.raises(DownloadError, match="unsafe_url"):
         http.open("https://cloud.mail.ru/a", mailru=True)
     http.close()
+
+
+def test_mailru_datacloud_redirect_and_subsequent_policy():
+    seen = []
+
+    def handler(request):
+        seen.append(request.url.host)
+        if request.url.host == "cloud.mail.ru":
+            return httpx.Response(301, headers={"Location": "https://cloclo50.datacloudmail.ru/a"})
+        return httpx.Response(200, stream=httpx.ByteStream(b"media"))
+
+    http = SafeHTTP(transport=httpx.MockTransport(handler))
+    try:
+        response = http.open("https://cloud.mail.ru/a", mailru=True)
+        assert response_bytes(response, 100) == b"media"
+        response.close()
+        assert seen == ["cloud.mail.ru", "cloclo50.datacloudmail.ru"]
+    finally:
+        http.close()
+
+    def escaping(request):
+        return httpx.Response(302, headers={"Location": "https://example.com/a"})
+
+    http = SafeHTTP(transport=httpx.MockTransport(escaping))
+    try:
+        with pytest.raises(DownloadError, match="unsafe_url"):
+            http.open("https://cloclo50.datacloudmail.ru/a", mailru=True)
+    finally:
+        http.close()
 
 
 def test_encoded_body_rejected():
