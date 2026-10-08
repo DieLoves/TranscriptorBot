@@ -1,7 +1,7 @@
 name: transcriptbot
 
 x-app: &app
-  image: transcriptbot-app:stage4
+  image: transcriptbot-app:stage5
   build:
     context: .
     dockerfile: Dockerfile

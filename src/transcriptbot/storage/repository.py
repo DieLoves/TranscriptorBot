@@ -1,5 +1,6 @@
 """Atomic queue operations shared by reception, worker and delivery."""
 
+import math
 import re
 import sqlite3
 import time
@@ -562,15 +563,88 @@ class Repository:
                 or job.phase != Phase.TRANSCRIBE
             ):
                 return False
-            return bool(
+            saved = bool(
                 connection.execute(
                     """UPDATE chunks SET response_path = ?, response_sha256 = ?, completed_at = ?
                 WHERE job_id = ? AND number = ? AND response_path IS NULL""",
                     (path, sha256, self.clock(), job.id, number),
                 ).rowcount
             )
+            if saved:
+                connection.execute(
+                    "UPDATE jobs SET attempts = 0, quota_attempts = 0, error_code = NULL "
+                    "WHERE id = ?",
+                    (job.id,),
+                )
+            return saved
 
         return await self.database.transaction(save)
+
+    async def reset_chunk_attempts(self, expected: Job) -> Job | None:
+        return await self._change(
+            expected, "attempts = 0, quota_attempts = 0, error_code = NULL", ()
+        )
+
+    async def reserve_groq(
+        self,
+        expected: Job,
+        *,
+        number: int,
+        seconds: float,
+        hourly: float,
+        daily: float,
+    ) -> tuple[int | None, float | None]:
+        """Atomically reserve account audio usage or return its next available time."""
+        seconds = max(10, seconds)
+        if not math.isfinite(seconds) or seconds > min(hourly, daily):
+            raise ValueError("Invalid quota reservation")
+
+        def reserve(c: sqlite3.Connection) -> tuple[int | None, float | None]:
+            job = read_job(c, expected.id)
+            if (
+                job is None
+                or job.revision != expected.revision
+                or job.status != JobStatus.ACTIVE
+                or job.phase != Phase.TRANSCRIBE
+            ):
+                return None, None
+            now = self.clock()
+            rows = list(
+                c.execute(
+                    "SELECT started_at, seconds FROM groq_usage WHERE started_at > ? "
+                    "AND outcome != 'rejected' ORDER BY started_at",
+                    (now - 86400,),
+                )
+            )
+            until = now
+            for window, limit in ((3600, hourly), (86400, daily)):
+                active = [(timestamp, used) for timestamp, used in rows if timestamp > now - window]
+                used = sum(used for _, used in active)
+                for timestamp, amount in active:
+                    if used + seconds <= limit:
+                        break
+                    used -= amount
+                    until = max(until, timestamp + window)
+            if until > now:
+                return None, until
+            usage_id = c.execute(
+                "INSERT INTO groq_usage (job_id, chunk_number, started_at, seconds) "
+                "VALUES (?, ?, ?, ?) RETURNING id",
+                (job.id, number, now, seconds),
+            ).fetchone()[0]
+            return usage_id, None
+
+        return await self.database.transaction(reserve)
+
+    async def finish_groq_usage(self, usage_id: int, *, outcome: str) -> None:
+        if outcome not in {"succeeded", "rejected"}:
+            raise ValueError("Invalid usage outcome")
+        await self.database.transaction(
+            lambda c: c.execute(
+                "UPDATE groq_usage SET outcome = ? WHERE id = ? AND outcome = 'uncertain'",
+                (outcome, usage_id),
+            )
+        )
 
     async def chunks(self, job_id: int) -> list[Chunk]:
         return await self.database.call(

@@ -60,6 +60,8 @@ class Settings(BaseSettings):
     http_max_redirects: Annotated[int, Field(ge=0)] = 5
     download_timeout_seconds: PositiveFloat = 3600
     groq_timeout_seconds: PositiveFloat = 300
+    groq_audio_seconds_per_hour: Annotated[float, Field(ge=10)] = 7200
+    groq_audio_seconds_per_day: Annotated[float, Field(ge=10)] = 28_800
     ffprobe_timeout_seconds: PositiveFloat = 60
     ffmpeg_timeout_seconds: PositiveFloat = 300
 
@@ -147,6 +149,13 @@ class Settings(BaseSettings):
             raise ValueError("inconsistent silence window")
         if self.max_user_jobs > self.max_queue_jobs:
             raise ValueError("MAX_USER_JOBS exceeds MAX_QUEUE_JOBS")
+        if (
+            min(self.groq_audio_seconds_per_hour, self.groq_audio_seconds_per_day)
+            < self.chunk_seconds
+        ):
+            raise ValueError("audio quota cannot accommodate one chunk")
+        if self.silence_min_seconds * 16_000 < 1:
+            raise ValueError("silence must span at least one sample")
         roots = [self.sqlite_path.parent, self.work_dir, self.telegram_files_dir]
         for index, left in enumerate(roots):
             for right in roots[index + 1 :]:

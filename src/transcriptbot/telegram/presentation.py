@@ -53,6 +53,16 @@ ERROR_MESSAGES = {
     "telegram_delivery_unavailable": "чат или тема недоступны для отправки",
     "telegram_delivery_failed": "не удалось отправить сообщение или результат",
     "result_artifact_unavailable": "файл результата недоступен",
+    "upload_size_limit": "подготовленная часть превышает лимит Groq",
+    "checkpoint_invalid": "контрольная точка повреждена; отправьте источник заново",
+    "groq_auth": "Groq отклонил доступ; требуется проверка настроек оператором",
+    "groq_request": "Groq отклонил аудио или параметры запроса",
+    "groq_quota_configuration": "настроенная квота Groq меньше сохранённой части аудио",
+    "groq_network": "не удалось завершить запрос к Groq",
+    "groq_server": "сервис Groq временно недоступен",
+    "groq_invalid_response": "Groq вернул некорректный результат",
+    "media_timeout": "истёк срок подготовки аудио",
+    "pipeline_io": "не удалось сохранить рабочие файлы",
 }
 
 

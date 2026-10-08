@@ -1,4 +1,4 @@
-"""FIFO source acquisition; preparation/transcription are connected in stage 5."""
+"""FIFO source acquisition and recoverable media/Groq pipeline."""
 
 import asyncio
 import logging
@@ -11,6 +11,9 @@ from aiogram.client.telegram import TelegramAPIServer
 from transcriptbot.config import Settings
 from transcriptbot.downloaders.errors import DownloadError
 from transcriptbot.downloaders.service import SourceDownloader
+from transcriptbot.groq_adapter import GroqAdapter
+from transcriptbot.media.errors import PipelineError
+from transcriptbot.media.service import MediaPipeline
 from transcriptbot.storage.models import Job, JobStatus, Phase
 from transcriptbot.storage.repository import Repository
 
@@ -59,10 +62,60 @@ async def run(settings: Settings, shutdown: asyncio.Event, repository: Repositor
     )
     async with Bot(settings.telegram_bot_token.get_secret_value(), session=session) as bot:
         downloader = SourceDownloader(settings, repository, bot)
-        while not shutdown.is_set():
-            job = await repository.claim_next()
-            if job is not None and job.phase == Phase.DOWNLOAD:
-                await download_job(job, downloader, repository, shutdown)
-                continue
-            with suppress(TimeoutError):
-                await asyncio.wait_for(shutdown.wait(), timeout=0.5)
+        groq = GroqAdapter(settings, clock=repository.clock)
+        pipeline = MediaPipeline(settings, repository, groq)
+        try:
+            while not shutdown.is_set():
+                job = await repository.claim_next()
+                if job is not None:
+                    if job.phase == Phase.DOWNLOAD:
+                        await download_job(job, downloader, repository, shutdown)
+                        continue
+                    await process_job(job, pipeline, repository, shutdown)
+                    if job.phase != Phase.DELIVER:
+                        continue
+                with suppress(TimeoutError):
+                    await asyncio.wait_for(shutdown.wait(), timeout=0.5)
+        finally:
+            await groq.close()
+
+
+async def process_job(job: Job, pipeline, repository: Repository, shutdown: asyncio.Event):
+    """Cancel active I/O on shutdown/revision change; only persist safe failure codes."""
+    operation = asyncio.create_task(pipeline.step(job))
+    try:
+        while not operation.done():
+            current = await repository.get_job(job.id, owner_id=job.owner_id)
+            if (
+                shutdown.is_set()
+                or current is None
+                or current.status != JobStatus.ACTIVE
+                or current.revision != job.revision
+            ):
+                operation.cancel()
+                return
+            await asyncio.wait({operation}, timeout=0.1)
+        operation.result()
+    except (PipelineError, DownloadError) as exc:
+        logger.info(
+            "job_id=%s event=pipeline_failed phase=%s error_code=%s", job.id, job.phase, exc.code
+        )
+        settings = pipeline.settings
+        if getattr(exc, "quota", False):
+            delay = exc.retry_after or min(
+                settings.quota_retry_max_seconds, 60 * 2 ** min(job.quota_attempts, 6)
+            )
+            await repository.defer(
+                job, until=repository.clock() + delay, error_code=exc.code, quota=True
+            )
+        elif exc.retryable and job.attempts < settings.max_retries:
+            delay = exc.retry_after or RETRY_DELAYS[min(job.attempts, len(RETRY_DELAYS) - 1)]
+            await repository.defer(job, until=repository.clock() + delay, error_code=exc.code)
+        else:
+            await repository.fail(job, error_code=exc.code)
+    except OSError:
+        await repository.fail(job, error_code="pipeline_io")
+    finally:
+        if not operation.done():
+            operation.cancel()
+        await asyncio.gather(operation, return_exceptions=True)

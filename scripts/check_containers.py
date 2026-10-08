@@ -7,7 +7,7 @@ import uuid
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-APP_IMAGE = "transcriptbot-app:stage4"
+APP_IMAGE = "transcriptbot-app:stage5"
 API_IMAGE = "transcriptbot-bot-api:stage1"
 TEST_ENV = """GROQ_API_KEY=gsk_container_test
 TELEGRAM_BOT_TOKEN=12345:container_test
@@ -197,7 +197,7 @@ def main() -> None:
                 "import sqlite3; c = sqlite3.connect('/data/transcriptbot.sqlite3'); "
                 "assert c.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'; "
                 "assert c.execute('PRAGMA journal_mode').fetchone()[0] == 'wal'; "
-                "assert c.execute('SELECT COUNT(*) FROM schema_migrations').fetchone()[0] == 2"
+                "assert c.execute('SELECT COUNT(*) FROM schema_migrations').fetchone()[0] == 3"
             )
             docker(
                 "run",
@@ -223,6 +223,20 @@ def main() -> None:
                 "python",
                 APP_IMAGE,
                 "/tmp/check_downloaders.py",
+            )
+            print(result.stdout.strip())
+            media_check = Path(__file__).with_name("check_media_offline.py").resolve()
+            result = docker(
+                "run",
+                "--rm",
+                *common,
+                *mounts,
+                "--volume",
+                f"{media_check}:/tmp/check_media.py:ro",
+                "--entrypoint",
+                "python",
+                APP_IMAGE,
+                "/tmp/check_media.py",
             )
             print(result.stdout.strip())
         finally:
