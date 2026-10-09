@@ -2,7 +2,7 @@
 
 import re
 from dataclasses import dataclass, replace
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, parse_qsl, urlencode, urlsplit, urlunsplit
 
 from aiogram import Dispatcher, Router
 from aiogram.types import CallbackQuery, Message
@@ -68,16 +68,28 @@ def url_source(text: str) -> SourceRef | None:
         return None
     host = url.hostname.lower().rstrip(".")
     if host in {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"}:
-        if "list" in parse_qs(url.query) or not (
+        video_ids = parse_qs(url.query, keep_blank_values=True).get("v", [])
+        if not (
             (
                 host == "youtu.be"
                 and len(url.path.strip("/").split("/")) == 1
                 and bool(url.path.strip("/"))
             )
-            or (url.path == "/watch" and len(parse_qs(url.query).get("v", [])) == 1)
+            or (url.path == "/watch" and len(video_ids) == 1 and bool(video_ids[0]))
             or re.fullmatch(r"/(shorts|embed)/[^/]+/?", url.path)
         ):
             return None
+        # A video opened from a playlist is still one source. Strip playlist
+        # context before persisting/downloading, while rejecting playlist-only paths.
+        query = parse_qsl(url.query, keep_blank_values=True)
+        if any(key in {"list", "index"} for key, _value in query):
+            text = urlunsplit(
+                url._replace(
+                    query=urlencode(
+                        [(key, value) for key, value in query if key not in {"list", "index"}]
+                    )
+                )
+            )
         return SourceRef(SourceKind.YOUTUBE, text)
     if host == "cloud.mail.ru":
         if url.scheme != "https" or not re.fullmatch(r"/public/[^/]+/[^/]+(?:/.*)?", url.path):

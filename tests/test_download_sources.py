@@ -1,5 +1,6 @@
 import json
 import wave
+from contextlib import nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -19,6 +20,7 @@ from transcriptbot.downloaders.files import (
 from transcriptbot.downloaders.http_sources import download, mailru_download, mailru_path
 from transcriptbot.downloaders.network import SafeHTTP
 from transcriptbot.downloaders.service import SourceDownloader, child_process
+from transcriptbot.downloaders.youtube import youtube_download
 from transcriptbot.storage.database import Database
 from transcriptbot.storage.models import SourceKind, SourceRef
 from transcriptbot.storage.repository import Repository
@@ -34,6 +36,34 @@ class Blocks(httpx.SyncByteStream):
 
 def http_response(status=200, headers=None, blocks=(b"media",)):
     return httpx.Response(status, headers=headers, stream=Blocks(*blocks))
+
+
+@pytest.mark.parametrize("host", ["youtube.com", "m.youtube.com"])
+def test_youtube_playlist_context_normalized_and_playlist_result_rejected(
+    tmp_path, monkeypatch, host
+):
+    seen = []
+
+    def extract(url, download):
+        seen.append(url)
+        assert download is False
+        return {"_type": "playlist"}
+
+    def extractor(http, maximum, params):
+        assert params["noplaylist"] is True
+        return nullcontext(
+            SimpleNamespace(
+                _request_director=SimpleNamespace(handlers={"Protected": SimpleNamespace()}),
+                extract_info=extract,
+            )
+        )
+
+    monkeypatch.setattr("transcriptbot.downloaders.youtube.ProtectedYoutubeDL", extractor)
+    with pytest.raises(DownloadError, match="unsupported_source"):
+        youtube_download(
+            None, f"https://{host}/watch?v=8B_GZk9lRY0&list=abc&index=16", tmp_path, 100, 60
+        )
+    assert seen == [f"https://{host}/watch?v=8B_GZk9lRY0"]
 
 
 @pytest.mark.parametrize(

@@ -163,6 +163,7 @@ def youtube_download(http: SafeHTTP, url: str, directory: Path, maximum: int, du
     source = url_source(url)
     if source is None or source.kind != "youtube":
         raise DownloadError("unsupported_source")
+    url = source.reference
     target = directory / "source.media"
     partial = Path(str(target) + ".part")
     if target.is_symlink() or partial.is_symlink():

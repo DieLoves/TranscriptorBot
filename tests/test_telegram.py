@@ -186,12 +186,44 @@ def test_supported_urls(settings, url, kind):
         "https://user:password@example.com/a",
         "https://example.com:wrong/a",
         "https://youtube.com/playlist?list=abc",
-        "https://youtube.com/watch?v=abc&list=abc",
+        "https://youtube.com/watch?list=abc",
+        "https://m.youtube.com/watch?v=&list=abc",
+        "https://youtube.com/watch?v=abc&v=def&list=abc",
+        "https://youtube.com/watch?v=abc&v=&list=abc",
+        "https://youtu.be/?list=abc",
         "http://cloud.mail.ru/public/token/key",
     ],
 )
 def test_invalid_urls(url):
     assert url_source(url) is None
+
+
+@pytest.mark.parametrize("host", ["youtube.com", "www.youtube.com", "m.youtube.com"])
+@pytest.mark.parametrize("command", ["", "/transcribe "])
+def test_youtube_video_in_playlist_is_one_normalized_source(settings, host, command):
+    url = f"https://{host}/watch?v=8B_GZk9lRY0&list=PL48Q51pndTVk4Ec0tOgTFQFVGUIRO8Cq8&index=16"
+    request = message_request(message(command + url), settings, "BotName")
+    assert request.action == "create"
+    assert request.source.kind == SourceKind.YOUTUBE
+    assert request.source.reference == f"https://{host}/watch?v=8B_GZk9lRY0"
+
+
+@pytest.mark.parametrize(
+    "url, expected",
+    [
+        ("https://youtu.be/abc?list=playlist&index=2&t=30", "https://youtu.be/abc?t=30"),
+        ("https://youtube.com/shorts/abc?list=playlist", "https://youtube.com/shorts/abc"),
+        ("https://youtube.com/watch?list=&v=abc&index=", "https://youtube.com/watch?v=abc"),
+        (
+            "https://m.youtube.com/watch?list=a&v=abc&list=b&index=2&si=share",
+            "https://m.youtube.com/watch?v=abc&si=share",
+        ),
+    ],
+)
+def test_youtube_playlist_context_removed_without_changing_video(url, expected):
+    source = url_source(url)
+    assert source.kind == SourceKind.YOUTUBE
+    assert source.reference == expected
 
 
 def test_group_reply_checks_initiator_and_preserves_topic(settings):
