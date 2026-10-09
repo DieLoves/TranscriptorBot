@@ -143,3 +143,25 @@ def test_startup_requires_explicit_migrations(
     assert "transcriptbot migrate" in process.stderr
     assert "Traceback" not in process.stderr
     assert "event=ready" not in process.stderr
+
+
+def test_unexpected_runtime_error_never_prints_sensitive_library_output(
+    settings, fake_media_tools, monkeypatch, capsys
+):
+    from transcriptbot import cli
+
+    settings.telegram_files_dir.mkdir(parents=True)
+    monkeypatch.setattr(cli, "load_settings", lambda *_: settings)
+
+    async def broken(*args):
+        raise RuntimeError("private-library-output https://example.com/?token=secret")
+
+    monkeypatch.setattr(cli, "serve", broken)
+    with pytest.raises(SystemExit) as caught:
+        cli.main(["worker", "--env-file", "missing.env"])
+    assert caught.value.code == 2
+    output = capsys.readouterr()
+    assert "Непредвиденная ошибка" in output.err
+    assert "private-library-output" not in output.err
+    assert "token=secret" not in output.err
+    assert "Traceback" not in output.err

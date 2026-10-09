@@ -152,6 +152,43 @@ async def test_single_raw_json_and_empty_result(repository, settings, empty):
     assert (directory / "result.txt").read_text() == (raw["text"] + "\n" if not empty else "")
 
 
+async def test_assembly_bounds_total_responses_before_loading_all_parts(
+    repository, small_settings, monkeypatch
+):
+    class Groq:
+        calls = 0
+
+        async def transcribe(self, path):
+            self.calls += 1
+            return {"text": "x" * 2048, "segments": []}
+
+    job = await create(repository, small_settings)
+    groq = Groq()
+    pipeline = MediaPipeline(small_settings, repository, groq)
+    for _ in range(10):
+        current = await step(repository, pipeline)
+        if current.phase == Phase.ASSEMBLE:
+            break
+    assert current.phase == Phase.ASSEMBLE and groq.calls == 3
+    loaded = []
+    response = pipeline.response
+
+    def observe(job, manifest, chunk, path):
+        loaded.append(chunk.number)
+        return response(job, manifest, chunk, path)
+
+    monkeypatch.setattr(pipeline, "response", observe)
+    monkeypatch.setattr("transcriptbot.media.service.RESULT_LIMIT", 3500)
+    await step(repository, pipeline)
+    current = await repository.get_job(job.id, owner_id=123)
+    assert current.status == "failed" and current.error_code == "result_size_limit"
+    assert loaded == [0, 1]  # The third JSON is never read into the aggregate.
+    assert groq.calls == 3
+    directory = small_settings.work_dir / str(job.id)
+    assert len(list(directory.glob("response-*.json"))) == 3
+    assert not (directory / "result.txt").exists()
+
+
 async def test_restart_saved_and_orphan_response_no_api_repeat(
     repository, small_settings, monkeypatch
 ):
@@ -429,3 +466,19 @@ async def test_rejected_requests_release_audio_and_stale_job_cannot_reserve(repo
         None,
         None,
     )
+
+
+async def test_quota_wait_does_not_extract_audio(repository, settings, monkeypatch):
+    job = await create(repository, settings, seconds=1)
+    pipeline = MediaPipeline(settings, repository, FakeGroq())
+    job = await step(repository, pipeline)
+    # Fill the hourly account quota using conservative uncertain reservations.
+    await repository.reserve_groq(job, number=0, seconds=7200, hourly=7200, daily=28800)
+
+    async def forbidden(*args, **kwargs):
+        raise AssertionError("quota wait must not run FFmpeg")
+
+    monkeypatch.setattr("transcriptbot.media.service.extract", forbidden)
+    job = await step(repository, pipeline)
+    assert job.status == "quota_wait" and job.error_code == "groq_quota_local"
+    assert not (settings.work_dir / str(job.id) / "current.wav").exists()

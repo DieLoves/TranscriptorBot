@@ -14,6 +14,22 @@ RESPONSE_LIMIT = 8_000_000
 RESULT_LIMIT = 16_000_000
 
 
+def validate_depth(value: object) -> None:
+    # The C JSON decoder can accept deep structures without Python recursion.
+    # Bound nesting explicitly, using iterator stacks rather than recursive walks.
+    stack = [iter((value,))]
+    sentinel = object()
+    while stack:
+        item = next(stack[-1], sentinel)
+        if item is sentinel:
+            stack.pop()
+            continue
+        if isinstance(item, (dict, list)):
+            if len(stack) > 100:
+                raise ValueError("JSON nesting limit")
+            stack.append(iter(item.values() if isinstance(item, dict) else item))
+
+
 def read_json(path: Path, *, maximum: int = RESPONSE_LIMIT) -> dict:
     regular_path(path, path.parent)
     if path.stat().st_size > maximum:
@@ -22,8 +38,9 @@ def read_json(path: Path, *, maximum: int = RESPONSE_LIMIT) -> dict:
         value = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(value, dict):
             raise ValueError
+        validate_depth(value)
         return value
-    except (ValueError, UnicodeError):
+    except (ValueError, UnicodeError, RecursionError):
         raise PipelineError("checkpoint_invalid") from None
 
 
@@ -48,8 +65,9 @@ def validate_response(value: dict) -> None:
                     raise ValueError
                 if "seek" in segment and type(segment["seek"]) not in (float, int):
                     raise ValueError
-        json.dumps(value, allow_nan=False)
-    except (KeyError, ValueError, TypeError, OverflowError):
+        validate_depth(value)
+        json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
+    except (KeyError, ValueError, TypeError, OverflowError, RecursionError):
         raise PipelineError("groq_invalid_response", retryable=True, uncertain=True) from None
 
 

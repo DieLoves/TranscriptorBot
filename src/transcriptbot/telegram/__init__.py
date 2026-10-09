@@ -14,6 +14,7 @@ from aiogram.exceptions import (
 )
 
 from transcriptbot.config import Settings
+from transcriptbot.retries import retry_after
 from transcriptbot.storage.repository import Repository
 from transcriptbot.telegram.polling import TelegramRuntimeError, poll
 from transcriptbot.telegram.requests import make_dispatcher
@@ -37,7 +38,7 @@ async def run(settings: Settings, shutdown: asyncio.Event, repository: Repositor
                 identity = await bot.get_me(request_timeout=15)
                 break
             except TelegramRetryAfter as exc:
-                await asyncio.sleep(max(1, exc.retry_after))
+                await asyncio.sleep(retry_after(str(exc.retry_after), repository.clock()) or 60)
             except (ClientDecodeError, TelegramNetworkError, TelegramServerError):
                 await asyncio.sleep(5)
             except TelegramAPIError:

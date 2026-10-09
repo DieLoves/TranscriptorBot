@@ -21,7 +21,7 @@ async def serve(settings: Settings, role: Role) -> None:
     for item in signals:
         loop.add_signal_handler(item, shutdown.set)
     database = None
-    worker_lock = WorkerLock(settings.sqlite_path) if role == "worker" else None
+    worker_lock = WorkerLock(settings.sqlite_path, role=role)
     pulse = None
     try:
         if worker_lock is not None:

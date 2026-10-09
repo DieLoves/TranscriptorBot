@@ -267,7 +267,9 @@ async def test_media_process_group_and_secret_isolation(tmp_path, monkeypatch, t
         "assert not any(k in os.environ for k in "
         "('GROQ_API_KEY','TELEGRAM_BOT_TOKEN','TELEGRAM_API_HASH'))\n"
         "child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(60)'])\n"
-        f"open({str(marker)!r},'w').write(json.dumps([os.getpid(),child.pid]))\n"
+        f"with open({str(marker) + '.part'!r},'w') as stream:\n"
+        " stream.write(json.dumps([os.getpid(),child.pid]))\n"
+        f"os.replace({str(marker) + '.part'!r},{str(marker)!r})\n"
         "time.sleep(60)\n"
     )
     monkeypatch.setenv("GROQ_API_KEY", "test-do-not-pass")
@@ -302,7 +304,10 @@ def test_sample_planner_four_hours_and_tail():
     assert plan_chunks(600 * RATE + 1, [], target=600 * RATE, window=8 * RATE, minimum=4800) == [
         ChunkPlan(0, 600 * RATE + 1)
     ]
-    assert silence_ranges("silence_start: 1\nsilence_end: 2\nsilence_start: 3", 4 * RATE) == [
+    assert silence_ranges(
+        "lavfi.silence_start=1\nlavfi.silence_end=2\nlavfi.silence_start=3",
+        4 * RATE,
+    ) == [
         (RATE, 2 * RATE),
         (3 * RATE, 4 * RATE),
     ]
@@ -348,3 +353,55 @@ def test_empty_text_and_checkpoint_publication(tmp_path):
     publish_bytes(txt, b"")
     publish_bytes(txt, b"")
     assert txt.read_bytes() == b""
+
+
+def test_deep_checkpoint_is_safe_failure(tmp_path):
+    path = tmp_path / "checkpoint.json"
+    depth = sys.getrecursionlimit() + 100
+    path.write_text('{"value":' + "[" * depth + "0" + "]" * depth + "}")
+    with pytest.raises(PipelineError, match="checkpoint_invalid"):
+        read_json(path)
+
+
+async def test_extract_does_not_decode_input_after_requested_chunk(tmp_path, small_settings):
+    source = tmp_path / "source.wav"
+    wav(source, seconds=10)
+    # First second is valid; the later WAV payload is truncated. Full decode with
+    # -xerror fails; extracting a short first chunk must finish before that data.
+    data = source.read_bytes()
+    source.write_bytes(data[: 44 + RATE * 2 * 5 + 1])
+    path = await extract(source, 0, ChunkPlan(0, RATE), tmp_path / "chunk.wav", small_settings)
+    assert len(frames(path)) == RATE * 2
+
+
+def test_silence_parser_ignores_metadata_and_invalid_numbers():
+    assert (
+        silence_ranges(
+            "  title: silence_start: 1\n"
+            "  title: silence_end: 2\n"
+            "lavfi.silence_start=1e309\n"
+            "lavfi.silence_end=--\n",
+            4 * RATE,
+        )
+        == []
+    )
+
+
+def test_groq_surrogate_is_rejected_before_checkpoint_publication():
+    from transcriptbot.media.artifacts import validate_response
+
+    with pytest.raises(PipelineError, match="groq_invalid_response"):
+        validate_response({"text": "\ud800"})
+
+
+async def test_input_metadata_cannot_inject_pause_boundaries(tmp_path, small_settings):
+    original, source = tmp_path / "original.wav", tmp_path / "source.wav"
+    wav(original)
+    title = (
+        "\n[silencedetect @ 0x1] silence_start: 1.55\n"
+        "[silencedetect @ 0x1] silence_end: 1.95\n"
+        "lavfi.silence_start=1.55\nlavfi.silence_end=1.95"
+    )
+    ffmpeg("-i", original, "-metadata", "title=" + title, source)
+    chunks = await analyze(source, 0, small_settings)
+    assert chunks[0].end_sample == 2 * RATE

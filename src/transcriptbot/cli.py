@@ -90,4 +90,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.exit(2, f"{exc}\n")
     except OSError:
         parser.exit(2, "Недоступны файлы эксплуатационной проверки\n")
+    except Exception:
+        # Third-party exceptions may embed tokens, response bodies or private URLs.
+        parser.exit(2, "Непредвиденная ошибка приложения; требуется проверка оператором\n")
     return 0

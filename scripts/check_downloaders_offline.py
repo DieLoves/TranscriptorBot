@@ -20,9 +20,10 @@ class FakeBot:
         self.path = path
         self.calls = 0
 
-    async def get_file(self, reference):
+    async def get_file(self, reference, *, request_timeout):
         self.calls += 1
         assert reference == "offline-source"
+        assert request_timeout > 0
         return File(
             file_id=reference,
             file_unique_id="offline",

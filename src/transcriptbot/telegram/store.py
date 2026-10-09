@@ -4,9 +4,15 @@ import json
 import sqlite3
 from pathlib import Path
 
+from transcriptbot.retries import retry_after
 from transcriptbot.storage.models import Job, JobStatus, Phase, UpdateResult
 from transcriptbot.storage.repository import Repository, job_from_row, read_job
-from transcriptbot.telegram.presentation import OUTCOMES, status_payload
+from transcriptbot.telegram.presentation import (
+    OUTCOMES,
+    jobs_payload,
+    outcome_payload,
+    status_payload,
+)
 from transcriptbot.telegram.requests import HELP, Request
 
 
@@ -69,6 +75,10 @@ class TelegramStore:
                     (update_id + 1,),
                 )
                 return UpdateResult(**dict(old))
+            # Processed inbox rows can expire; the committed offset is the durable
+            # replay barrier. Polling delivers updates sequentially.
+            if update_id < c.execute("SELECT next_offset FROM polling_state").fetchone()[0]:
+                return UpdateResult("ignored", None)
             action = request.action
             result = UpdateResult(action, None)
             text = OUTCOMES.get(action)
@@ -108,6 +118,7 @@ class TelegramStore:
                 text = OUTCOMES[result.outcome]
             elif action == "help":
                 text = HELP
+                reply_payload = {"text": HELP, "parse_mode": "HTML"}
             elif action in {"status", "jobs"}:
                 rows = list(
                     c.execute(
@@ -124,18 +135,41 @@ class TelegramStore:
                 )
                 if action == "status":
                     job = job_from_row(rows[0]) if rows else None
-                    reply_payload = self._status(c, job) if job else None
-                    text = reply_payload["text"] if job else OUTCOMES["unavailable"]
+                    reply_payload = self._status(c, job) if job else outcome_payload("unavailable")
+                    text = reply_payload["text"]
                 else:
-                    text = "\n".join(self._status(c, job_from_row(row))["text"] for row in rows)
-                    text = text or "У вас пока нет заданий."
+                    reply_payload = jobs_payload([job_from_row(row) for row in rows])
+                    text = reply_payload["text"]
             c.execute(
                 "INSERT INTO processed_updates VALUES (?, ?, ?, ?, ?)",
                 (update_id, result.outcome, result.job_id, result.queue_position, self.clock()),
             )
             if result.job_id is not None and result.outcome in {"created", "cancelled", "resumed"}:
                 self._enqueue_status(c, read_job(c, result.job_id))
-            if request.callback_id or (text and request.chat_id is not None):
+            reply_needed = request.callback_id or (text and request.chat_id is not None)
+            pending = (
+                c.execute(
+                    "SELECT COUNT(*) FROM (SELECT 1 FROM outbox "
+                    "WHERE job_id IS NULL AND status = 'pending' AND chat_id IS ? LIMIT 10)",
+                    (request.chat_id,),
+                ).fetchone()[0]
+                if reply_needed
+                else 0
+            )
+            total_pending = (
+                c.execute(
+                    "SELECT COUNT(*) FROM (SELECT 1 FROM outbox "
+                    "WHERE job_id IS NULL AND status = 'pending' LIMIT 1000)"
+                ).fetchone()[0]
+                if reply_needed and pending < 10
+                else 1000
+            )
+            if reply_needed and pending < 10 and total_pending < 1000:
+                if request.callback_id:
+                    # Callback notifications do not support HTML formatting.
+                    reply_payload = {"text": text or "Готово."}
+                elif reply_payload is None and result.outcome in OUTCOMES:
+                    reply_payload = outcome_payload(result.outcome)
                 # Only UI text enters SQLite; previews and transcripts remain in files.
                 c.execute(
                     """INSERT INTO outbox
@@ -163,17 +197,26 @@ class TelegramStore:
     async def refresh_statuses(self) -> None:
         def refresh(c: sqlite3.Connection) -> None:
             # Include terminal rows until their latest state has been reflected in the status.
-            for row in c.execute(
-                """SELECT j.* FROM jobs j LEFT JOIN outbox o ON o.job_id = j.id
+            candidates = """SELECT id FROM jobs WHERE status IN
+                ('queued', 'active', 'retry_wait', 'quota_wait')
+                UNION SELECT job_id FROM dirty_status
+                UNION SELECT id FROM jobs INDEXED BY jobs_failed_retention
+                    WHERE status = 'failed' AND resumable = 1
+                    AND retention_until <= ?"""
+            for row in list(
+                c.execute(
+                    f"""SELECT j.* FROM jobs j LEFT JOIN outbox o ON o.job_id = j.id
                 AND o.generation = j.generation AND o.operation = 'status'
-                WHERE o.id IS NULL OR (o.status != 'cancelled' AND (
+                WHERE j.id IN ({candidates}) AND (o.id IS NULL OR (o.status != 'cancelled' AND (
                     j.status IN ('queued', 'active', 'retry_wait', 'quota_wait')
                     OR o.status = 'pending' OR o.status_revision IS NOT j.revision
                     OR (j.status = 'failed' AND j.retention_until <= ?
-                        AND COALESCE(o.last_sent_at, 0) < j.retention_until)))""",
-                (self.clock(),),
+                        AND COALESCE(o.last_sent_at, 0) < j.retention_until))))""",
+                    (self.clock(), self.clock()),
+                )
             ):
                 self._enqueue_status(c, job_from_row(row))
+            c.execute("DELETE FROM dirty_status")
 
         await self.database.transaction(refresh)
         # Reconcile a crash between confirmation of the final file and job completion.
@@ -236,7 +279,8 @@ class TelegramStore:
                 AND (o.operation != 'json' OR EXISTS
                     (SELECT 1 FROM outbox t WHERE t.job_id = o.job_id AND t.operation = 'txt'
                      AND t.status = 'sent'))
-                ORDER BY (o.operation = 'callback') DESC, o.id LIMIT 1""",
+                ORDER BY (o.operation = 'callback') DESC,
+                    (o.job_id IS NOT NULL) DESC, o.id LIMIT 1""",
                 (now, now, self.status_interval, now),
             ).fetchone()
             return dict(row) if row else None
@@ -274,7 +318,7 @@ class TelegramStore:
 
     async def retry(self, operation: dict, *, delay: float, count: bool) -> None:
         def retry(c: sqlite3.Connection) -> None:
-            until = self.clock() + delay
+            until = self.clock() + (retry_after(str(delay), self.clock()) or 60)
             c.execute(
                 "UPDATE outbox SET next_attempt_at = ?, attempts = attempts + ? "
                 "WHERE id = ? AND status = 'pending'",
@@ -299,11 +343,12 @@ class TelegramStore:
     async def reject_delivery(self, operation: dict, code: str) -> None:
         def reject(c: sqlite3.Connection) -> None:
             now = self.clock()
-            c.execute(
-                "UPDATE outbox SET status = 'cancelled' WHERE id = ? AND status = 'pending'",
-                (operation["id"],),
+            rejected = c.execute(
+                "UPDATE outbox SET status = 'cancelled' WHERE id = ? AND status = 'pending' "
+                "AND payload IS ?",
+                (operation["id"], operation["payload"]),
             )
-            if operation["job_id"] is None:
+            if not rejected.rowcount or operation["job_id"] is None:
                 return
             job = read_job(c, operation["job_id"])
             if job.generation != operation["generation"]:

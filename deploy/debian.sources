@@ -1,11 +1,11 @@
 Types: deb
-URIs: https://snapshot.debian.org/archive/debian/20261001T000000Z/
-Suites: bookworm bookworm-updates
+URIs: https://snapshot.debian.org/archive/debian/20261008T000000Z/
+Suites: trixie trixie-updates
 Components: main
 Check-Valid-Until: no
 
 Types: deb
-URIs: https://snapshot.debian.org/archive/debian-security/20261001T000000Z/
-Suites: bookworm-security
+URIs: https://snapshot.debian.org/archive/debian-security/20261008T000000Z/
+Suites: trixie-security
 Components: main
 Check-Valid-Until: no

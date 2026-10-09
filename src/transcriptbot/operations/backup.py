@@ -3,13 +3,16 @@
 import os
 import sqlite3
 import tempfile
+import time
 from pathlib import Path
 
 from transcriptbot.downloaders.files import fsync_directory
 from transcriptbot.storage.database import StorageError, check_schema
 
 
-def copy_database(source: Path, target: Path, *, restore: bool = False) -> None:
+def copy_database(
+    source: Path, target: Path, *, restore: bool = False, timeout: float = 60
+) -> None:
     """Used for backup and restore; never overwrite an existing target database."""
     temporary = None
     try:
@@ -27,10 +30,16 @@ def copy_database(source: Path, target: Path, *, restore: bool = False) -> None:
         descriptor, name = tempfile.mkstemp(prefix=".sqlite-backup-", dir=target.parent)
         temporary = Path(name)
         os.close(descriptor)
-        original = sqlite3.connect(source.as_uri() + "?mode=ro", uri=True, timeout=10)
+        original = sqlite3.connect(source.as_uri() + "?mode=ro", uri=True, timeout=min(10, timeout))
         snapshot = sqlite3.connect(temporary)
         try:
-            original.backup(snapshot, pages=256)
+            deadline = time.monotonic() + timeout
+
+            def progress(status, remaining, total):
+                if time.monotonic() >= deadline:
+                    raise StorageError("Истёк срок копирования SQLite; повторите позже")
+
+            original.backup(snapshot, pages=256, progress=progress, sleep=0.05)
             if snapshot.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                 raise StorageError("Резервная копия не прошла проверку SQLite")
             if snapshot.execute("PRAGMA foreign_key_check").fetchone() is not None:

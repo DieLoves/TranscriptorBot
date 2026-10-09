@@ -2,14 +2,22 @@
 
 import fcntl
 import os
+import stat
 from pathlib import Path
 
 from transcriptbot.storage.database import StorageError
 
 
+class LockBusy(StorageError):
+    pass
+
+
 class WorkerLock:
-    def __init__(self, database_path: Path) -> None:
-        self.path = database_path.with_name(database_path.name + ".worker.lock")
+    def __init__(self, database_path: Path, *, role: str = "worker") -> None:
+        if role not in {"bot", "worker"}:
+            raise ValueError("Invalid process role")
+        self.role = role
+        self.path = database_path.with_name(database_path.name + f".{role}.lock")
         self._descriptor: int | None = None
 
     def acquire(self) -> None:
@@ -20,10 +28,15 @@ class WorkerLock:
         except OSError:
             raise StorageError("Не удалось открыть блокировку worker") from None
         try:
+            if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+                raise OSError
             fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            os.close(descriptor)
+            raise LockBusy(f"Другой {self.role} уже запущен") from None
         except OSError:
             os.close(descriptor)
-            raise StorageError("Другой worker уже запущен или блокировка недоступна") from None
+            raise StorageError(f"Блокировка {self.role} недоступна") from None
         self._descriptor = descriptor
 
     def release(self) -> None:
@@ -31,3 +44,21 @@ class WorkerLock:
             os.close(self._descriptor)
             self._descriptor = None
         # Never unlink: another worker could otherwise lock a different inode.
+
+
+class DeliveryLock(WorkerLock):
+    """Shared by bot I/O and worker cleanup; process death releases the lease."""
+
+    def __init__(self, database_path: Path, job_id: int) -> None:
+        super().__init__(database_path)
+        if job_id <= 0:
+            raise ValueError("Invalid job ID")
+        # Outside the disposable workspace: this inode must never be unlinked.
+        self.path = database_path.with_name(database_path.name + f".delivery-{job_id}.lock")
+
+    def try_acquire(self) -> bool:
+        try:
+            self.acquire()
+        except LockBusy:
+            return False
+        return True

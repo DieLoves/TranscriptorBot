@@ -20,6 +20,7 @@ from aiogram.exceptions import (
 from transcriptbot.config import Settings
 from transcriptbot.downloaders.errors import DownloadError
 from transcriptbot.downloaders.files import job_directory, regular_path, reserve_disk
+from transcriptbot.retries import retry_after
 from transcriptbot.storage.models import Job
 from transcriptbot.storage.repository import Repository
 
@@ -122,10 +123,14 @@ class SourceDownloader:
                 settings.disk_reserve_bytes,
             )
             try:
-                file = await self.bot.get_file(job.source_ref)
+                file = await self.bot.get_file(
+                    job.source_ref, request_timeout=settings.download_timeout_seconds
+                )
             except TelegramRetryAfter as exc:
                 raise DownloadError(
-                    "download_rate_limit", retryable=True, retry_after=exc.retry_after
+                    "download_rate_limit",
+                    retryable=True,
+                    retry_after=retry_after(str(exc.retry_after), self.repository.clock()) or 60,
                 ) from None
             except (ClientDecodeError, TelegramNetworkError, TelegramServerError):
                 raise DownloadError("download_network", retryable=True) from None

@@ -202,7 +202,7 @@ FFprobe допускает только локальный протокол и �
 docker run --rm --read-only --tmpfs /tmp:mode=1777,size=4g \
   --cap-drop ALL --security-opt no-new-privileges:true --entrypoint python \
   --mount type=bind,src="$PWD/scripts",dst=/checks,readonly \
-  transcriptbot-app:stage6 /checks/check_sources_live.py direct youtube mailru
+  transcriptbot-app:audit /checks/check_sources_live.py direct youtube mailru
 ```
 
 Код возврата 1 означает, что хотя бы один источник не прошёл проверку.

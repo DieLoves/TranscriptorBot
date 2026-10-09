@@ -11,6 +11,7 @@ from transcriptbot.operations.files import (
     workspace_files,
 )
 from transcriptbot.storage.repository import Repository
+from transcriptbot.storage.worker_lock import DeliveryLock
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ class Cleanup:
         if scan:
             self.next_scan = now + self.settings.cleanup_interval_seconds
             await self.repository.expire_failed()
+            await self.repository.prune_inbox()
         errors = 0
         if startup:
             # Only known jobs: unknown directories and all Bot API internals are untouched.
@@ -46,6 +48,9 @@ class Cleanup:
             if job.id in self.busy or now < self.retry_at.get(job.id, 0):
                 continue
             directory = self.settings.work_dir / str(job.id)
+            lease = DeliveryLock(self.settings.sqlite_path, job.id)
+            if not lease.try_acquire():
+                continue
             try:
                 assets = await self.repository.job_assets(job.id)
                 if self.cache_busy and any(asset["kind"] == "telegram_cache" for asset in assets):
@@ -73,6 +78,8 @@ class Cleanup:
                 self.retry_at[job.id] = now + self.settings.cleanup_interval_seconds
                 code = "cleanup_unsafe_path" if isinstance(exc, UnsafeCleanupPath) else "cleanup_io"
                 logger.warning("job_id=%s event=cleanup_failed error_code=%s", job.id, code)
+            finally:
+                lease.release()
         errors += len(self.retry_at)
         if startup or scan or errors or await self.repository.cleanup_jobs():
             await self.repository.database.transaction(

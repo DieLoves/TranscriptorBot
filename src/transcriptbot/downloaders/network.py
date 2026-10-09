@@ -1,12 +1,10 @@
 """HTTPX/HTTPcore transport: public DNS only, numeric connection, original Host/TLS."""
 
 import ipaddress
-import math
 import socket
 import ssl
 import time
 from collections.abc import Callable
-from email.utils import parsedate_to_datetime
 from queue import Empty, Queue
 from threading import Thread
 from urllib.parse import urljoin, urlsplit
@@ -16,6 +14,7 @@ import httpx
 from httpcore._backends.sync import SyncStream
 
 from transcriptbot.downloaders.errors import DownloadError
+from transcriptbot.retries import retry_after
 
 
 def validate_url(value: str, *, mailru: bool = False) -> str:
@@ -55,7 +54,10 @@ def public_address(value: str) -> bool:
         if isinstance(address, ipaddress.IPv6Address) and address.ipv4_mapped:
             address = address.ipv4_mapped
         if isinstance(address, ipaddress.IPv6Address) and (
-            address.sixtofour or address.teredo or address in ipaddress.ip_network("64:ff9b::/96")
+            address.sixtofour
+            or address.teredo
+            or address in ipaddress.ip_network("64:ff9b::/96")
+            or address in ipaddress.ip_network("64:ff9b:1::/48")
         ):
             return False
         if str(address) == "168.63.129.16":  # Azure platform/metadata virtual address.
@@ -188,17 +190,7 @@ class SafeHTTP:
 def check_status(response: httpx.Response) -> None:
     status = response.status_code
     if status == 429:
-        try:
-            value = response.headers.get("retry-after", "60")
-            try:
-                delay = float(value)
-            except ValueError:
-                delay = parsedate_to_datetime(value).timestamp() - time.time()
-            if not math.isfinite(delay):
-                raise ValueError
-            delay = max(1, delay)
-        except (ValueError, OverflowError, TypeError):
-            delay = 60
+        delay = retry_after(response.headers.get("retry-after"), time.time()) or 60
         raise DownloadError("download_rate_limit", retryable=True, retry_after=delay)
     if status >= 500:
         raise DownloadError("download_server", retryable=True)

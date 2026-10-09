@@ -87,7 +87,7 @@ async def test_migrations_are_required_and_idempotent(tmp_path: Path) -> None:
             await first.call(
                 lambda c: c.execute("SELECT COUNT(*) FROM schema_migrations").fetchone()[0]
             )
-            == 4
+            == 5
         )
         assert (
             await second.call(lambda c: c.execute("SELECT value FROM queue_sequence").fetchone()[0])
@@ -636,3 +636,48 @@ async def test_cancel_and_late_completion_race(database: Database, repository: R
             assert completion.status == final.status == JobStatus.COMPLETED
     finally:
         await second.close()
+
+
+@pytest.mark.parametrize("suffix", ["", "-wal", "-shm"])
+async def test_database_rejects_symlink_state(tmp_path, suffix):
+    path = tmp_path / "db.sqlite3"
+    database = await Database(path).open(migrate=True)
+    await database.close()
+    outside = tmp_path / "outside"
+    outside.write_text("preserved")
+    link = tmp_path / (path.name + suffix)
+    if not suffix:
+        path.unlink()
+    link.symlink_to(outside)
+    with pytest.raises(StorageError, match="Символьные ссылки"):
+        await Database(path).open()
+    assert outside.read_text() == "preserved"
+
+
+async def test_wal_bootstrap_recovers_immediate_sqlite_busy(tmp_path, monkeypatch):
+    import sqlite3
+
+    original = sqlite3.connect
+    attempts = []
+
+    class BusyConnection(sqlite3.Connection):
+        def execute(self, sql, *args, **kwargs):
+            if sql == "PRAGMA journal_mode = WAL":
+                attempts.append(sql)
+                if len(attempts) == 1:
+                    error = sqlite3.OperationalError("synthetic WAL initialization race")
+                    error.sqlite_errorcode = sqlite3.SQLITE_BUSY
+                    raise error
+            return super().execute(sql, *args, **kwargs)
+
+    monkeypatch.setattr(
+        sqlite3, "connect", lambda *a, **k: original(*a, **k, factory=BusyConnection)
+    )
+    database = await Database(tmp_path / "db").open(migrate=True)
+    try:
+        assert len(attempts) == 2
+        assert (
+            await database.call(lambda c: c.execute("PRAGMA journal_mode").fetchone()[0]) == "wal"
+        )
+    finally:
+        await database.close()

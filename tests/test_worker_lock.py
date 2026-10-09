@@ -69,3 +69,36 @@ def test_lock_descriptor_is_not_inherited(tmp_path: Path) -> None:
         assert not os.get_inheritable(lock._descriptor)
     finally:
         lock.release()
+
+
+def test_bot_lock_prevents_parallel_delivery_and_does_not_block_worker(tmp_path):
+    first = WorkerLock(tmp_path / "db", role="bot")
+    second = WorkerLock(tmp_path / "db", role="bot")
+    worker = WorkerLock(tmp_path / "db")
+    first.acquire()
+    try:
+        with pytest.raises(StorageError, match="Другой bot"):
+            second.acquire()
+        worker.acquire()
+        worker.release()
+    finally:
+        first.release()
+    second.acquire()
+    second.release()
+
+
+def test_delivery_lock_is_exclusive_per_job_and_reusable(tmp_path):
+    from transcriptbot.storage.worker_lock import DeliveryLock
+
+    first = DeliveryLock(tmp_path / "db", 1)
+    same = DeliveryLock(tmp_path / "db", 1)
+    other = DeliveryLock(tmp_path / "db", 2)
+    assert first.try_acquire()
+    try:
+        assert not same.try_acquire()
+        assert other.try_acquire()
+        other.release()
+    finally:
+        first.release()
+    assert same.try_acquire()
+    same.release()

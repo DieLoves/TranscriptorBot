@@ -20,9 +20,16 @@ def input_command(source: Path, stream: int) -> list[str]:
         "ffmpeg",
         "-nostdin",
         "-hide_banner",
+        "-nostats",
         "-loglevel",
-        "info",
+        "error",
         "-xerror",
+        "-threads",
+        "1",
+        "-filter_threads",
+        "1",
+        "-max_alloc",
+        "268435456",
         "-protocol_whitelist",
         "file",
         "-format_whitelist",
@@ -108,7 +115,11 @@ async def analyze(source: Path, stream: int, settings: Settings) -> list[ChunkPl
     command = [
         *input_command(source, stream),
         "-af",
-        FILTER + f",silencedetect=noise=-35dB:d={settings.silence_min_seconds}",
+        FILTER
+        + f",silencedetect=noise=-35dB:d={settings.silence_min_seconds}"
+        # Read filter frame metadata, not FFmpeg's input dump with user titles.
+        # This descriptor is bounded/drained by run_tool; no extra file is kept.
+        + ",ametadata=mode=print:file=/dev/fd/2",
         "-c:a",
         "pcm_s16le",
         "-f",
@@ -148,7 +159,13 @@ async def extract(
     command = [
         *input_command(source, stream),
         "-af",
-        FILTER + f",atrim=start_sample={chunk.start_sample}:end_sample={chunk.end_sample}",
+        FILTER
+        + f",atrim=start_sample={chunk.start_sample}:end_sample={chunk.end_sample}"
+        + ",asetpts=PTS-STARTPTS",
+        # atrim itself keeps consuming input after end_sample. Stop output at
+        # this exact sample duration so a short first part does not decode 4 h.
+        "-t",
+        f"{chunk.seconds:.8f}",
         "-ar",
         "16000",
         "-ac",

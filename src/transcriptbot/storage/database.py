@@ -86,6 +86,8 @@ class Database:
     def _open(self, migrate: bool) -> None:
         if self._connection is not None:
             raise StorageError("Соединение с базой уже открыто")
+        if any(Path(str(self.path) + suffix).is_symlink() for suffix in ("", "-wal", "-shm")):
+            raise StorageError("Символьные ссылки SQLite не разрешены")
         if migrate:
             self.path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
             descriptor = os.open(self.path, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
@@ -97,7 +99,22 @@ class Database:
         self._connection = connection
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA busy_timeout = 10000")
-        if connection.execute("PRAGMA journal_mode = WAL").fetchone()[0] != "wal":
+        # Switching a new database to WAL can return SQLITE_BUSY immediately,
+        # bypassing busy_timeout when two migrate processes race at startup.
+        deadline = time.monotonic() + 10
+        while True:
+            try:
+                mode = connection.execute("PRAGMA journal_mode = WAL").fetchone()[0]
+                break
+            except sqlite3.OperationalError as exc:
+                if (
+                    getattr(exc, "sqlite_errorcode", None)
+                    not in {sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED}
+                    or time.monotonic() >= deadline
+                ):
+                    raise
+                time.sleep(0.02)
+        if mode != "wal":
             raise StorageError("Не удалось включить SQLite WAL")
         connection.execute("PRAGMA foreign_keys = ON")
         connection.execute("PRAGMA synchronous = FULL")

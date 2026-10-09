@@ -1,6 +1,8 @@
 import asyncio
 import json
 from dataclasses import replace
+from html import escape, unescape
+from html.parser import HTMLParser
 
 import pytest
 from aiogram import Bot
@@ -19,7 +21,7 @@ from transcriptbot.storage.database import Database, StorageError, migration_scr
 from transcriptbot.storage.models import JobStatus, Phase, SourceKind, SourceRef
 from transcriptbot.storage.repository import Repository
 from transcriptbot.telegram.polling import poll, process_update
-from transcriptbot.telegram.presentation import preview_text
+from transcriptbot.telegram.presentation import preview_payload, preview_text
 from transcriptbot.telegram.requests import (
     Request,
     make_dispatcher,
@@ -576,6 +578,67 @@ def test_preview_read_bounded(tmp_path):
     assert len(preview_text(path, 3000)) == 3000
 
 
+@pytest.mark.parametrize("text", ["<&>" * 5000, "🎙" * 5000, "<b>речь</b> & текст", ""])
+@pytest.mark.parametrize("limit", [1, 2, 64, 3000])
+def test_formatted_preview_keeps_entities_and_utf16_within_limit(tmp_path, text, limit):
+    path = tmp_path / "text.txt"
+    path.write_text(text, encoding="utf-8")
+    payload = preview_payload(path, limit)
+    assert payload["text"]
+    assert len(payload["text"].encode("utf-16-le")) // 2 <= limit
+    if payload.get("parse_mode") == "HTML":
+        # A hostile transcript must remain literal text, with only our header in bold.
+        assert payload["text"].count("<b>") == payload["text"].count("</b>") == 1
+        assert "<" not in payload["text"].replace("<b>", "").replace("</b>", "")
+        HTMLParser().feed(payload["text"])
+        if text and len(text) < 100:
+            assert text in unescape(payload["text"])
+
+
+async def test_html_status_escapes_title_on_send_and_edit(env):
+    repository, store, clock, _bot, session, sender = env
+    title = '<b>Файл</b> & <a href="https://example.com">ссылка</a>'
+    await store.accept(
+        1, replace(incoming(), source=SourceRef(SourceKind.DIRECT, "https://example.com/a", title))
+    )
+    await sender.send_one()
+    assert session.calls[-1].parse_mode == "HTML"
+    assert escape(title) in session.calls[-1].text
+    current = await repository.claim_next()
+    await repository.advance(current, Phase.PREPARE)
+    await store.refresh_statuses()
+    clock.now += 5
+    await sender.send_one()
+    assert session.calls[-1].__api_method__ == "editMessageText"
+    assert session.calls[-1].parse_mode == "HTML"
+    assert escape(title) in session.calls[-1].text
+
+
+@pytest.mark.parametrize("action", ["help", "jobs", "invalid_request"])
+async def test_formatted_service_replies_enable_html(env, action):
+    _repository, store, _clock, _bot, session, sender = env
+    await store.accept(1, Request(action, chat_id=123, owner_id=123))
+    await sender.send_one()
+    assert session.calls[-1].parse_mode == "HTML"
+    assert "<b>" in session.calls[-1].text
+
+
+async def test_formatted_delivery_escapes_transcript_without_persisting_it(env, settings):
+    _repository, store, _clock, _bot, session, _sender = env
+    text = '<b>Речь</b> & <a href="https://example.com">ссылка</a>'
+    await delivery(env, settings, text)
+    await drain(env)
+    previews = [
+        call
+        for call in session.calls
+        if call.__api_method__ == "sendMessage" and "Расшифровка" in call.text
+    ]
+    assert len(previews) == 1
+    assert previews[0].parse_mode == "HTML"
+    assert escape(text, quote=False) in previews[0].text
+    assert not any("Речь" in (row["payload"] or "") for row in await rows(store))
+
+
 async def test_legacy_processed_update_advances_offset_without_duplicate(env):
     repository, store, *_ = env
     await repository.create_job(
@@ -706,7 +769,7 @@ async def test_resume_button_removed_when_retention_expires(env):
     failed = await repository.fail(current, error_code="download_failed")
     await store.refresh_statuses()
     await sender.send_one()
-    assert session.calls[-1].reply_markup.inline_keyboard[0][0].text == "Продолжить"
+    assert session.calls[-1].reply_markup.inline_keyboard[0][0].text == "↻ Продолжить"
     clock.now = failed.retention_until + 1
     await store.refresh_statuses()
     await sender.send_one()
@@ -735,6 +798,7 @@ async def test_unavailable_callback_message_is_acknowledged(env, settings):
     await sender.send_one()
     assert session.calls[-1].__api_method__ == "answerCallbackQuery"
     assert "недоступно" in session.calls[-1].text
+    assert "<b>" not in session.calls[-1].text
 
 
 async def test_runtime_uses_custom_http_api_and_stops_during_long_poll(env, settings):
@@ -804,7 +868,8 @@ async def test_runtime_uses_custom_http_api_and_stops_during_long_poll(env, sett
         await runner.cleanup()
 
 
-async def test_real_http_transport_streams_both_documents(env, settings):
+@pytest.mark.parametrize("empty", [False, True])
+async def test_real_http_transport_streams_both_documents(env, settings, empty):
     from aiogram.client.session.aiohttp import AiohttpSession
     from aiogram.client.telegram import TelegramAPIServer
     from aiohttp import web
@@ -818,7 +883,13 @@ async def test_real_http_transport_streams_both_documents(env, settings):
         destinations.append((fields["chat_id"], fields.get("message_thread_id")))
         if "document" in fields:
             upload = fields[fields["document"].removeprefix("attach://")]
-            uploaded.append((upload.filename, upload.file.read()))
+            content = upload.file.read()
+            if not content:
+                return web.json_response(
+                    {"ok": False, "error_code": 400, "description": "File must be non-empty"},
+                    status=400,
+                )
+            uploaded.append((upload.filename, content))
         return web.json_response(
             {
                 "ok": True,
@@ -841,14 +912,19 @@ async def test_real_http_transport_streams_both_documents(env, settings):
     bot = Bot("12345:fake_test", session=session)
     sender = Sender(bot, store, settings)
     try:
-        txt, verbose = await delivery(env, settings)
+        txt, verbose = await delivery(env, settings, "" if empty else "Секретный текст")
+        if empty:
+            # Recovered zero-byte checkpoints must remain valid and immutable.
+            await restart(repository, store)
         for _ in range(5):
             await store.refresh_statuses()
             await sender.send_one()
             clock.now += 5
         assert len(uploaded) == 2
         assert uploaded[0][0].endswith("-1.txt")
-        assert uploaded[0][1] == txt.read_bytes()
+        assert uploaded[0][1] == (b"\n" if empty else txt.read_bytes())
+        if empty:
+            assert txt.read_bytes() == b""
         assert uploaded[1][1] == verbose.read_bytes()
         assert all(chat == "-100" and topic == "12" for chat, topic in destinations)
         assert (await job(repository)).status == JobStatus.COMPLETED
@@ -879,3 +955,135 @@ async def test_artifact_cannot_use_another_jobs_symlink_directory(env, settings)
     await drain(env)
     assert (await job(repository)).error_code == "result_artifact_unavailable"
     assert not any(isinstance(call, SendDocument) for call in session.calls)
+
+
+async def test_cancelled_delivery_keeps_files_until_external_io_stops(env, settings):
+    from transcriptbot.operations.cleanup import Cleanup
+
+    repository, store, _clock, _bot, session, sender = env
+    txt, verbose = await delivery(env, settings)
+    await drain(env, count=2)
+    started, finish = asyncio.Event(), asyncio.Event()
+
+    async def pending(method):
+        started.set()
+        await finish.wait()
+        # Model an upload that opens/reads the file after cancellation is committed.
+        assert txt.read_text() == "Секретный текст"
+        return message(message_id=200)
+
+    session.effects = [pending]
+    sending = asyncio.create_task(sender.send_one())
+    try:
+        await started.wait()
+        await store.accept(2, Request("cancel", chat_id=123, owner_id=123, job_id=1, generation=0))
+        cleanup = Cleanup(settings, repository)
+        await cleanup.run()
+        assert txt.exists() and verbose.exists()
+        assert (await job(repository)).cleanup_pending
+    finally:
+        finish.set()
+        await sending
+    await cleanup.run()
+    assert not txt.parent.exists()
+    assert not (await job(repository)).cleanup_pending
+
+
+async def test_stale_status_failure_cannot_reject_new_progress(env):
+    repository, store, _clock, _bot, session, sender = env
+    await store.accept(1, incoming())
+    started, finish = asyncio.Event(), asyncio.Event()
+
+    async def pending(method):
+        started.set()
+        await finish.wait()
+        raise TelegramForbiddenError(method=GetUpdates(), message="stale send rejected")
+
+    session.effects = [pending]
+    sending = asyncio.create_task(sender.send_one())
+    try:
+        await started.wait()
+        current = await repository.claim_next()
+        await repository.advance(current, Phase.PREPARE)
+        await store.refresh_statuses()
+    finally:
+        finish.set()
+        await sending
+    assert (await job(repository)).status == JobStatus.ACTIVE
+    assert (await rows(store))[0]["status"] == "pending"
+    await sender.send_one()
+    assert "подготовка" in session.calls[-1].text
+
+
+async def test_delivery_rejects_symlink_even_inside_workspace(env, settings):
+    repository, _store, *_ = env
+    txt, _ = await delivery(env, settings)
+    other = txt.with_name("other.txt")
+    other.write_text("must not upload")
+    txt.unlink()
+    txt.symlink_to(other)
+    await drain(env)
+    assert (await job(repository)).error_code == "result_artifact_unavailable"
+
+
+async def test_terminal_history_not_revisited_on_each_refresh(env, monkeypatch):
+    repository, store, *_ = env
+    await store.accept(1, incoming())
+    await repository.cancel(update_id=2, job_id=1, owner_id=123, generation=0)
+    await store.refresh_statuses()
+    visits = []
+    original = store._enqueue_status
+
+    def record(connection, current):
+        visits.append(current.id)
+        return original(connection, current)
+
+    monkeypatch.setattr(store, "_enqueue_status", record)
+    for _ in range(5):
+        await store.refresh_statuses()
+    assert visits == []
+
+
+async def test_reply_backlog_per_chat_is_bounded_without_losing_offset(env):
+    _repository, store, *_ = env
+    for update_id in range(100):
+        await store.accept(update_id, Request("forbidden", chat_id=999, owner_id=999))
+    pending = [row for row in await rows(store) if row["status"] == "pending"]
+    assert len(pending) == 10
+    assert await store.offset() == 100
+
+
+async def test_reply_backlog_across_chats_is_bounded_and_cannot_starve_jobs(env):
+    repository, store, *_ = env
+    for update_id in range(1100):
+        await store.accept(update_id, Request("forbidden", chat_id=999 + update_id, owner_id=999))
+    pending = [row for row in await rows(store) if row["status"] == "pending"]
+    assert len(pending) == 1000
+    result = await store.accept(1100, incoming())
+    assert result.outcome == "created" and result.job_id == 1
+    assert await store.offset() == 1101
+    operation = await store.next_operation()
+    assert operation["job_id"] == 1 and operation["operation"] == "status"
+    assert (await repository.get_job(1, owner_id=123)).status == "queued"
+
+
+async def test_inbox_pruning_preserves_history_confirmations_and_replay_barrier(env, settings):
+    repository, store, clock, *_ = env
+    await delivery(env, settings)
+    await drain(env)
+    await store.accept(2, Request("help", chat_id=123, owner_id=123))
+    await drain(env)
+    clock.now += 31 * 86400
+    await repository.prune_inbox()
+    assert (
+        await store.database.call(
+            lambda c: c.execute("SELECT COUNT(*) FROM processed_updates").fetchone()[0]
+        )
+        == 0
+    )
+    operations = {row["operation"]: row for row in await rows(store)}
+    assert operations["txt"]["status"] == operations["json"]["status"] == "sent"
+    assert "reply" not in operations
+    assert (await store.accept(1, incoming())).outcome == "ignored"
+    assert len(await repository.list_jobs(owner_id=123)) == 1
+    assert await store.offset() == 3

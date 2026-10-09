@@ -31,6 +31,8 @@ def regular_path(path: Path, root: Path) -> Path:
     if ".." in path.parts or not path.is_absolute():
         raise DownloadError("unsafe_path")
     try:
+        if root.is_symlink():
+            raise DownloadError("unsafe_path")
         relative = path.relative_to(root)
         current = root
         for part in relative.parts:
@@ -92,6 +94,8 @@ def probe(path: Path, *, timeout: float, maximum_duration: float) -> dict:
         "ffprobe",
         "-v",
         "error",
+        "-max_alloc",
+        "268435456",
         "-protocol_whitelist",
         "file",
         "-format_whitelist",
@@ -191,7 +195,7 @@ def source_manifest(directory: Path, payload: dict, path: Path) -> dict:
             if old["duration_seconds"] > payload["duration"]:
                 raise DownloadError("duration_limit")
             return old
-        except (ValueError, KeyError, TypeError):
+        except (ValueError, KeyError, TypeError, RecursionError):
             raise DownloadError("source_changed") from None
     media = probe(path, timeout=payload["probe_timeout"], maximum_duration=payload["duration"])
     value = {

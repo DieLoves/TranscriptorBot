@@ -14,6 +14,7 @@ from aiogram.exceptions import (
 )
 from aiogram.types import Update
 
+from transcriptbot.retries import retry_after
 from transcriptbot.telegram.requests import Request
 from transcriptbot.telegram.store import TelegramStore
 
@@ -44,7 +45,7 @@ async def poll(bot: Bot, dispatcher: Dispatcher, store: TelegramStore) -> None:
                 allowed_updates=["message", "channel_post", "callback_query"],
             )
         except TelegramRetryAfter as exc:
-            await asyncio.sleep(max(1, exc.retry_after))
+            await asyncio.sleep(retry_after(str(exc.retry_after), store.clock()) or 60)
             continue
         except (ClientDecodeError, TelegramNetworkError, TelegramServerError):
             failures += 1

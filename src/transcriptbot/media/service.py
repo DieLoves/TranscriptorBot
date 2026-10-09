@@ -10,6 +10,7 @@ from pathlib import Path
 from transcriptbot.config import Settings
 from transcriptbot.downloaders.files import job_directory, regular_path
 from transcriptbot.media.artifacts import (
+    RESULT_LIMIT,
     assemble,
     digest,
     publish_bytes,
@@ -158,6 +159,7 @@ class MediaPipeline:
             path = directory / f"response-{chunk.number:04d}.json"
             if chunk.response_path is not None:
                 self.response(job, manifest, chunk, path)
+                await asyncio.sleep(0)
                 continue
             await self.track(job, path)
             if path.exists() or path.is_symlink():
@@ -167,6 +169,28 @@ class MediaPipeline:
                     job, number=chunk.number, path=str(path), sha256=digest(path)
                 ):
                     await self.repository.reset_chunk_attempts(job)
+                return
+            seconds = (chunk.end_sample - chunk.start_sample) / RATE
+            if max(10, seconds) > min(
+                self.settings.groq_audio_seconds_per_hour, self.settings.groq_audio_seconds_per_day
+            ):
+                raise PipelineError("groq_quota_configuration")
+            # Waiting for account quota must not decode the source on every wakeup.
+            _, until = await self.repository.reserve_groq(
+                job,
+                number=chunk.number,
+                seconds=seconds,
+                hourly=self.settings.groq_audio_seconds_per_hour,
+                daily=self.settings.groq_audio_seconds_per_day,
+                reserve=False,
+            )
+            if until is not None:
+                raise PipelineError(
+                    "groq_quota_local",
+                    quota=True,
+                    retry_after=max(1, until - self.repository.clock()),
+                )
+            if not await self.alive(job):
                 return
             upload = directory / "current.wav"
             await self.track(job, upload)
@@ -184,11 +208,6 @@ class MediaPipeline:
             )
             if not await self.alive(job):
                 return
-            seconds = (chunk.end_sample - chunk.start_sample) / RATE
-            if max(10, seconds) > min(
-                self.settings.groq_audio_seconds_per_hour, self.settings.groq_audio_seconds_per_day
-            ):
-                raise PipelineError("groq_quota_configuration")
             usage_id, until = await self.repository.reserve_groq(
                 job,
                 number=chunk.number,
@@ -233,10 +252,21 @@ class MediaPipeline:
         chunks = await self.repository.chunks(job.id)
         if not chunks or any(chunk.response_path is None for chunk in chunks):
             raise PipelineError("checkpoint_invalid")
-        responses = [
-            self.response(job, manifest, c, directory / f"response-{c.number:04d}.json")
-            for c in chunks
-        ]
+        responses = []
+        response_bytes = 0
+        for chunk in chunks:
+            response = self.response(
+                job, manifest, chunk, directory / f"response-{chunk.number:04d}.json"
+            )
+            # The final JSON retains every raw response. Reject an impossible
+            # result before loading all 4 hours of individually bounded JSONs.
+            response_bytes += len(
+                json.dumps(response, ensure_ascii=False, allow_nan=False).encode("utf-8")
+            )
+            if response_bytes > RESULT_LIMIT:
+                raise PipelineError("result_size_limit")
+            responses.append(response)
+            await asyncio.sleep(0)
         value = assemble(chunks, responses)
         txt, verbose_json = self.result_paths(directory)
         for path in (txt, verbose_json):

@@ -2,9 +2,7 @@
 
 import asyncio
 import json
-import math
 import time
-from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 import httpx
@@ -13,19 +11,7 @@ from groq import APIConnectionError, APIStatusError, AsyncGroq
 from transcriptbot.config import Settings
 from transcriptbot.media.artifacts import RESPONSE_LIMIT, validate_response
 from transcriptbot.media.errors import PipelineError
-
-
-def retry_after(value: str | None, now: float) -> float | None:
-    if not value:
-        return None
-    try:
-        seconds = float(value)
-    except ValueError:
-        try:
-            seconds = parsedate_to_datetime(value).timestamp() - now
-        except (ValueError, TypeError, OverflowError):
-            return None
-    return max(1, seconds) if math.isfinite(seconds) else None
+from transcriptbot.retries import retry_after
 
 
 class GroqAdapter:
@@ -33,6 +19,9 @@ class GroqAdapter:
         self.settings, self.clock = settings, clock
         self.client = client or AsyncGroq(
             api_key=settings.groq_api_key.get_secret_value(),
+            # Ignore the SDK-only GROQ_BASE_URL environment override; v1 uses
+            # the official service, and must not send its key to another host.
+            base_url="https://api.groq.com",
             max_retries=0,
             timeout=settings.groq_timeout_seconds,
             http_client=httpx.AsyncClient(trust_env=False, follow_redirects=False),
@@ -62,7 +51,7 @@ class GroqAdapter:
                                 )
                 try:
                     value = json.loads(data)
-                except (ValueError, UnicodeError):
+                except (ValueError, UnicodeError, RecursionError):
                     raise PipelineError(
                         "groq_invalid_response", retryable=True, uncertain=True
                     ) from None

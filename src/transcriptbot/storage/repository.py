@@ -7,6 +7,7 @@ import time
 from collections.abc import Callable
 from itertools import pairwise
 
+from transcriptbot.retries import MAX_DEADLINE
 from transcriptbot.storage.database import Database
 from transcriptbot.storage.models import (
     Chunk,
@@ -327,7 +328,7 @@ class Repository:
         self, expected: Job, *, until: float, error_code: str, quota: bool = False
     ) -> Job | None:
         self._validate_error(error_code)
-        if until <= self.clock():
+        if not math.isfinite(until) or not self.clock() < until <= MAX_DEADLINE:
             raise ValueError("Retry must be scheduled in the future")
         counter = "quota_attempts" if quota else "attempts"
         return await self._change(
@@ -594,13 +595,14 @@ class Repository:
         seconds: float,
         hourly: float,
         daily: float,
+        reserve: bool = True,
     ) -> tuple[int | None, float | None]:
         """Atomically reserve account audio usage or return its next available time."""
         seconds = max(10, seconds)
         if not math.isfinite(seconds) or seconds > min(hourly, daily):
             raise ValueError("Invalid quota reservation")
 
-        def reserve(c: sqlite3.Connection) -> tuple[int | None, float | None]:
+        def reserve_usage(c: sqlite3.Connection) -> tuple[int | None, float | None]:
             job = read_job(c, expected.id)
             if (
                 job is None
@@ -628,6 +630,8 @@ class Repository:
                     until = max(until, timestamp + window)
             if until > now:
                 return None, until
+            if not reserve:
+                return None, None
             usage_id = c.execute(
                 "INSERT INTO groq_usage (job_id, chunk_number, started_at, seconds) "
                 "VALUES (?, ?, ?, ?) RETURNING id",
@@ -635,7 +639,7 @@ class Repository:
             ).fetchone()[0]
             return usage_id, None
 
-        return await self.database.transaction(reserve)
+        return await self.database.transaction(reserve_usage)
 
     async def finish_groq_usage(self, usage_id: int, *, outcome: str) -> None:
         if outcome not in {"succeeded", "rejected"}:
@@ -691,6 +695,32 @@ class Repository:
             )
 
         await self.database.transaction(expire)
+
+    async def prune_inbox(self) -> None:
+        """Keep 30 days of delivery diagnostics; durable offset rejects older replays.
+
+        Job history and all per-job delivery confirmations remain indefinitely.
+        Bound each pass so maintenance cannot starve the bot/heartbeat.
+        """
+
+        def prune(c):
+            cutoff = self.clock() - 30 * 86400
+            c.execute(
+                "DELETE FROM outbox WHERE id IN (SELECT o.id FROM processed_updates u "
+                "JOIN outbox o ON o.update_id = u.update_id WHERE u.processed_at < ? "
+                "AND o.job_id IS NULL AND o.status != 'pending' LIMIT 1000)",
+                (cutoff,),
+            )
+            c.execute(
+                "DELETE FROM processed_updates WHERE update_id IN (SELECT u.update_id "
+                "FROM processed_updates u WHERE u.processed_at < ? "
+                "AND u.update_id < (SELECT next_offset FROM polling_state) "
+                "AND NOT EXISTS (SELECT 1 FROM outbox o WHERE o.update_id = u.update_id) "
+                "LIMIT 1000)",
+                (cutoff,),
+            )
+
+        await self.database.transaction(prune)
 
     async def job_assets(self, job_id: int) -> list[dict]:
         return await self.database.call(

@@ -7,8 +7,8 @@ import uuid
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-APP_IMAGE = "transcriptbot-app:stage6"
-API_IMAGE = "transcriptbot-bot-api:stage1"
+APP_IMAGE = "transcriptbot-app:audit"
+API_IMAGE = "transcriptbot-bot-api:audit"
 TEST_ENV = """GROQ_API_KEY=gsk_container_test
 TELEGRAM_BOT_TOKEN=12345:container_test
 TELEGRAM_API_ID=12345
@@ -47,6 +47,11 @@ def check_compose(env_file: Path) -> None:
         assert service["user"] == "10001:10001"
         assert service["read_only"]
         assert "ALL" in service["cap_drop"]
+        expected_memory = {"512m", "536870912"} if name == "bot" else {"2g", "2147483648"}
+        # Compose versions emit either the original unit string or byte count.
+        assert str(service["mem_limit"]).lower() in expected_memory
+        assert service["pids_limit"] == 128
+        assert float(service["cpus"]) == 2
     print("Compose: three services, private Bot API, persistent volumes, non-root")
 
 
@@ -68,7 +73,13 @@ def main() -> None:
                 "none",
                 "--read-only",
                 "--tmpfs",
-                "/tmp:mode=1777",
+                "/tmp:mode=1777,size=256m",
+                "--memory",
+                "2g",
+                "--cpus",
+                "2",
+                "--pids-limit",
+                "128",
                 "--cap-drop",
                 "ALL",
                 "--security-opt",
@@ -186,6 +197,9 @@ def main() -> None:
             )
             print(result.stdout.strip())
             for role in ("bot", "worker"):
+                role_common = common.copy()
+                if role == "bot":
+                    role_common[role_common.index("--memory") + 1] = "512m"
                 mounts = [
                     "--volume",
                     f"{volumes[0]}:/data",
@@ -194,11 +208,11 @@ def main() -> None:
                     "--volume",
                     f"{volumes[2]}:/telegram" + (":ro" if role == "bot" else ""),
                 ]
-                result = docker("run", "--rm", *common, *mounts, APP_IMAGE, role, "--check")
+                result = docker("run", "--rm", *role_common, *mounts, APP_IMAGE, role, "--check")
                 assert f"Окружение {role} проверено" in result.stdout
                 name = f"{prefix}-{role}"
                 containers.append(name)
-                docker("run", "--detach", "--name", name, *common, *mounts, APP_IMAGE, role)
+                docker("run", "--detach", "--name", name, *role_common, *mounts, APP_IMAGE, role)
                 deadline = time.monotonic() + 30
                 while time.monotonic() < deadline:
                     log = docker("logs", name)
@@ -207,19 +221,18 @@ def main() -> None:
                     time.sleep(0.25)
                 else:
                     raise RuntimeError(f"Container did not become ready: {role}")
-                if role == "worker":
-                    duplicate = docker(
-                        "run",
-                        "--rm",
-                        *common,
-                        *mounts,
-                        APP_IMAGE,
-                        "worker",
-                        check=False,
-                    )
-                    assert duplicate.returncode == 2
-                    assert "Другой worker" in duplicate.stdout + duplicate.stderr
-                    print("Worker lock: a second worker cannot start on the shared volume")
+                duplicate = docker(
+                    "run",
+                    "--rm",
+                    *role_common,
+                    *mounts,
+                    APP_IMAGE,
+                    role,
+                    check=False,
+                )
+                assert duplicate.returncode == 2
+                assert f"Другой {role}" in duplicate.stdout + duplicate.stderr
+                print(f"{role} lock: a second process cannot start on the shared volume")
                 healthy = docker("exec", name, "transcriptbot", "healthcheck", "--service", role)
                 assert json.loads(healthy.stdout)["healthy"]
                 docker("stop", "--time", "5", name)
@@ -236,7 +249,7 @@ def main() -> None:
                 "import sqlite3; c = sqlite3.connect('/data/transcriptbot.sqlite3'); "
                 "assert c.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'; "
                 "assert c.execute('PRAGMA journal_mode').fetchone()[0] == 'wal'; "
-                "assert c.execute('SELECT COUNT(*) FROM schema_migrations').fetchone()[0] == 4"
+                "assert c.execute('SELECT COUNT(*) FROM schema_migrations').fetchone()[0] == 5"
             )
             docker(
                 "run",

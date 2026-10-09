@@ -2,6 +2,7 @@
 
 import re
 from datetime import UTC, datetime
+from html import escape
 
 from transcriptbot.storage.models import Job, JobStatus, Phase
 
@@ -66,30 +67,88 @@ ERROR_MESSAGES = {
     "recovery_files": "рабочие файлы недоступны или повреждены; отправьте источник заново",
 }
 
+OUTCOME_TITLES = {
+    "forbidden": "🔒 Доступ ограничен",
+    "anonymous": "👤 Не удалось определить пользователя",
+    "invalid_request": "💡 Как отправить запись",
+    "size_limit": "⚠️ Файл слишком большой",
+    "duration_limit": "⚠️ Запись слишком длинная",
+    "user_limit": "⏳ Ваши задания ещё выполняются",
+    "queue_limit": "⏳ Очередь заполнена",
+    "unavailable": "⚠️ Задание недоступно",
+    "cancelled": "✖️ Задание отменено",
+    "resumed": "↻ Продолжаем обработку",
+}
+
+
+def outcome_payload(outcome: str) -> dict:
+    return {
+        "text": f"<b>{OUTCOME_TITLES[outcome]}</b>\n\n{escape(OUTCOMES[outcome])}",
+        "parse_mode": "HTML",
+    }
+
+
+def _title(job: Job, limit: int = 100) -> str:
+    title = " ".join((job.title or "").split())
+    return escape(title[: limit - 1] + "…" if len(title) > limit else title)
+
 
 def status_payload(job: Job, position: int | None, done: int, total: int, now: float) -> dict:
+    icon = "⚙️"
+    note = ""
     if job.status == JobStatus.QUEUED:
-        stage = f"в очереди, место {position}"
+        icon = "🕓"
+        stage = f"В очереди\nМесто: {position}" if position is not None else "В очереди"
+        note = "Начну автоматически, когда подойдёт очередь."
     elif job.status == JobStatus.QUOTA_WAIT:
-        stage = "ожидание квоты; проверка " + datetime.fromtimestamp(
-            job.next_attempt_at, UTC
-        ).strftime("%d.%m %H:%M UTC")
+        icon = "⏳"
+        try:
+            deadline = datetime.fromtimestamp(job.next_attempt_at, UTC).strftime("%d.%m %H:%M UTC")
+        except (TypeError, ValueError, OverflowError, OSError):
+            # A legacy database may contain a deadline from an unchecked API header.
+            deadline = "после ответа сервиса; требуется проверка срока оператором"
+        stage = "Пауза: ожидание квоты\nПроверка: " + deadline
+        note = "Продолжу автоматически, когда квота станет доступна."
     elif job.status == JobStatus.RETRY_WAIT:
-        stage = f"временная ошибка ({PHASES[job.phase]}); запланирован повтор"
+        icon = "⏳"
+        stage = f"Временная ошибка\nЭтап: {PHASES[job.phase]}"
+        note = "Повтор запланирован автоматически."
     elif job.status == JobStatus.FAILED:
+        icon = "⚠️"
         reason = ERROR_MESSAGES.get(
             job.error_code, f"не удалось выполнить этап «{PHASES[job.phase]}»"
         )
-        stage = f"ошибка: {reason}"
+        stage = f"Не удалось завершить\nПричина: {reason}"
+        note = (
+            "Нажмите «Продолжить», чтобы вернуться к сохранённому месту."
+            if job.resumable and job.retention_until is not None and job.retention_until > now
+            else "Отправьте источник заново, чтобы создать задание."
+        )
     elif job.status == JobStatus.CANCELLED:
-        stage = "отменено"
+        icon, stage = "✖️", "Отменено"
     elif job.status == JobStatus.COMPLETED:
-        stage = "результат отправлен"
+        icon, stage = "✅", "Готово — результат отправлен"
+        note = "В чате: превью, TXT и JSON."
     elif job.phase == Phase.TRANSCRIBE and total:
-        stage = f"распознавание части {min(done + 1, total)}/{total}"
+        done = min(max(done, 0), total)
+        filled = done * 10 // total
+        stage = (
+            f"Этап: распознавание части {min(done + 1, total)}/{total}\n"
+            f"{'▰' * filled}{'▱' * (10 - filled)}  Готово частей: {done}/{total}"
+        )
     else:
-        stage = PHASES[job.phase]
-    payload = {"text": f"Задание #{job.id}: {stage}.", "reply_markup": {"inline_keyboard": []}}
+        stage = "Этап: " + PHASES[job.phase]
+    lines = [f"{icon} <b>Задание #{job.id}</b>"]
+    if title := _title(job):
+        lines.append(title)
+    lines.extend(["", escape(stage)])
+    if note:
+        lines.extend(["", escape(note)])
+    payload = {
+        "text": "\n".join(lines),
+        "parse_mode": "HTML",
+        "reply_markup": {"inline_keyboard": []},
+    }
     button = None
     if job.status in {
         JobStatus.QUEUED,
@@ -97,12 +156,40 @@ def status_payload(job: Job, position: int | None, done: int, total: int, now: f
         JobStatus.RETRY_WAIT,
         JobStatus.QUOTA_WAIT,
     }:
-        button = {"text": "Отменить", "callback_data": f"cancel:{job.id}:{job.generation}"}
-    elif job.status == JobStatus.FAILED and job.resumable and job.retention_until > now:
-        button = {"text": "Продолжить", "callback_data": f"resume:{job.id}:{job.generation}"}
+        button = {"text": "✖️ Отменить", "callback_data": f"cancel:{job.id}:{job.generation}"}
+    elif (
+        job.status == JobStatus.FAILED
+        and job.resumable
+        and job.retention_until is not None
+        and job.retention_until > now
+    ):
+        button = {"text": "↻ Продолжить", "callback_data": f"resume:{job.id}:{job.generation}"}
     if button:
         payload["reply_markup"]["inline_keyboard"] = [[button]]
     return payload
+
+
+def jobs_payload(jobs: list[Job]) -> dict:
+    labels = {
+        JobStatus.QUEUED: "🕓 в очереди",
+        JobStatus.RETRY_WAIT: "⏳ ожидает повтора",
+        JobStatus.QUOTA_WAIT: "⏳ ожидание квоты",
+        JobStatus.FAILED: "⚠️ ошибка",
+        JobStatus.CANCELLED: "✖️ отменено",
+        JobStatus.COMPLETED: "✅ готово",
+    }
+    lines = ["🗂 <b>Ваши задания</b>"]
+    for job in jobs:
+        label = labels.get(job.status, "⚙️ " + PHASES[job.phase])
+        lines.extend(["", f"<b>#{job.id}</b> · {label}"])
+        if title := _title(job, 48):
+            lines.append(title)
+    lines.extend(
+        ["", "Подробнее: <code>/status ID</code>"]
+        if jobs
+        else ["", "У вас пока нет заданий. Отправьте файл или ссылку, и я распознаю речь."]
+    )
+    return {"text": "\n".join(lines), "parse_mode": "HTML"}
 
 
 def safe_filename(job: Job, operation: str) -> str:
@@ -121,3 +208,37 @@ def preview_text(path, limit: int) -> str:
         suffix = "\n… Полная версия — в TXT."
         return text[: limit - len(suffix)] + suffix if limit > len(suffix) else text[:limit]
     return text
+
+
+def _fit_text(text: str, budget: int, *, html: bool = False) -> tuple[str, bool]:
+    """Keep complete characters/entities within a conservative UTF-16 wire budget."""
+    parts = []
+    used = 0
+    for char in text:
+        part = escape(char, quote=False) if html else char
+        size = len(part.encode("utf-16-le")) // 2
+        if used + size > budget:
+            return "".join(parts), True
+        parts.append(part)
+        used += size
+    return "".join(parts), False
+
+
+def preview_payload(path, limit: int) -> dict:
+    header = "📝 <b>Расшифровка</b>\n\n"
+    footer = "\n\n📎 Полный текст — в TXT. Таймкоды и данные — в JSON."
+    overhead = len((header + footer).encode("utf-16-le")) // 2
+    if limit <= overhead + 2:
+        # Very small configured previews still respect their limit without broken markup.
+        text, _ = _fit_text(preview_text(path, limit), limit)
+        return {"text": text or "…"}
+    with path.open(encoding="utf-8") as stream:
+        source = stream.read(limit + 1)
+    if not source.strip():
+        source = "Речь не распознана."
+        footer = "\n\n📎 Отправляю пустой TXT и JSON."
+    text, truncated = _fit_text(source, limit - overhead - 2, html=True)
+    return {
+        "text": header + text + ("\n…" if truncated else "") + footer,
+        "parse_mode": "HTML",
+    }

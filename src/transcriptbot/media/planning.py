@@ -1,5 +1,6 @@
 """Contiguous chunk boundaries on the decoded 16 kHz sample timeline."""
 
+import math
 import re
 from dataclasses import dataclass
 
@@ -19,8 +20,18 @@ class ChunkPlan:
 def silence_ranges(log: str, total: int) -> list[tuple[int, int]]:
     ranges = []
     start = None
-    for kind, value in re.findall(r"silence_(start|end):\s*([0-9.eE+-]+)", log):
-        sample = max(0, min(total, round(float(value) * RATE)))
+    for kind, value in re.findall(
+        r"^lavfi\.silence_(start|end)=([0-9.eE+-]+)",
+        log.replace("\r", "\n"),
+        re.MULTILINE,
+    ):
+        try:
+            seconds = float(value)
+        except ValueError:
+            continue
+        if not math.isfinite(seconds):
+            continue
+        sample = round(max(0, min(total / RATE, seconds)) * RATE)
         if kind == "start":
             start = sample
         elif start is not None:

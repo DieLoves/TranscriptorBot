@@ -497,3 +497,22 @@ async def test_worker_cleans_expired_job_during_long_download(repository, settin
     finally:
         shutdown.set()
         await asyncio.wait_for(task, 5)
+
+
+def test_backup_locked_source_has_bounded_wait(tmp_path):
+    import time
+
+    source, target = tmp_path / "locked.sqlite3", tmp_path / "backup.sqlite3"
+    connection = sqlite3.connect(source)
+    connection.execute("CREATE TABLE test (value)")
+    connection.commit()
+    connection.execute("BEGIN EXCLUSIVE")
+    started = time.monotonic()
+    try:
+        with pytest.raises(StorageError, match="Истёк срок"):
+            copy_database(source, target, timeout=0.1)
+    finally:
+        connection.close()
+    assert time.monotonic() - started < 2
+    assert not target.exists()
+    assert not list(tmp_path.glob(".sqlite-backup-*"))

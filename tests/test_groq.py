@@ -181,3 +181,12 @@ async def test_size_checked_before_request_and_bounded_response(settings, tmp_pa
 )
 def test_retry_after_seconds_and_http_date(header, expected):
     assert retry_after(header, 1000) == expected
+
+
+async def test_sdk_environment_cannot_redirect_credentials(settings, monkeypatch):
+    monkeypatch.setenv("GROQ_BASE_URL", "http://untrusted.invalid")
+    adapter = GroqAdapter(settings)
+    try:
+        assert str(adapter.client.base_url).rstrip("/") == "https://api.groq.com"
+    finally:
+        await adapter.close()

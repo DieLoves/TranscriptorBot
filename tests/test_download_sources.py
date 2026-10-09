@@ -259,7 +259,7 @@ async def test_telegram_uses_local_cache_and_tracks_asset(settings, repository):
     class Bot:
         calls = 0
 
-        async def get_file(self, reference):
+        async def get_file(self, reference, **kwargs):
             self.calls += 1
             assert reference == "file-id"
             return File(
@@ -290,7 +290,7 @@ async def test_telegram_rejects_outside_cache(settings, repository, tmp_path):
     path = wav(tmp_path / "outside.wav")
 
     class Bot:
-        async def get_file(self, reference):
+        async def get_file(self, reference, **kwargs):
             return File(file_id="file-id", file_unique_id="unique", file_path=str(path))
 
     with pytest.raises(DownloadError, match="unsafe_path"):

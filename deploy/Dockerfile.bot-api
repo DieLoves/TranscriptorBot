@@ -1,4 +1,4 @@
-FROM python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c AS build
+FROM python:3.12.15-slim-trixie@sha256:05cda9777409a9c3ffddd94a4c476b79f0769a0b4857f0c7ed9226b6800b0d6f AS build
 COPY deploy/debian.sources /etc/apt/sources.list.d/debian.sources
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates git cmake make g++ gperf libssl-dev zlib1g-dev \
@@ -11,11 +11,12 @@ RUN git clone https://github.com/tdlib/telegram-bot-api.git /source \
 RUN cmake -S /source -B /build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/bot-api \
     && cmake --build /build --target install --parallel 2
 
-FROM python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
-COPY deploy/debian.sources /etc/apt/sources.list.d/debian.sources
+FROM python:3.12.15-slim-trixie@sha256:05cda9777409a9c3ffddd94a4c476b79f0769a0b4857f0c7ed9226b6800b0d6f
+COPY deploy/debian-runtime.sources /etc/apt/sources.list.d/debian.sources
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates libssl3 zlib1g \
+    && apt-get install -y --no-install-recommends liblzma5=5.8.1-1+deb13u2 ca-certificates libssl3t64 zlib1g \
     && rm -rf /var/lib/apt/lists/* \
+    && python -m pip uninstall --yes pip \
     && groupadd --gid 10001 transcriptbot \
     && useradd --uid 10001 --gid 10001 --no-create-home transcriptbot \
     && install -d -m 0700 -o 10001 -g 10001 /telegram /telegram/tmp

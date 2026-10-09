@@ -1,0 +1,3420 @@
+{
+  "date": "2026-10-09",
+  "osv": {
+    "packages": 47,
+    "vulnerable_versions": 0
+  },
+  "before": {
+    "image": "transcriptbot-app:stage6",
+    "records_high_critical": 291,
+    "unique_high_critical_cves": 109
+  },
+  "base": {
+    "image": "python:3.12.15-slim-trixie",
+    "residual_high_critical": [
+      {
+        "id": "CVE-2026-76642",
+        "package": "bsdutils",
+        "version": "1:2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks"
+      },
+      {
+        "id": "CVE-2026-78408",
+        "package": "bsdutils",
+        "version": "1:2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority"
+      },
+      {
+        "id": "CVE-2026-78409",
+        "package": "bsdutils",
+        "version": "1:2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks"
+      },
+      {
+        "id": "CVE-2026-78410",
+        "package": "bsdutils",
+        "version": "1:2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection"
+      },
+      {
+        "id": "CVE-2026-54369",
+        "package": "libacl1",
+        "version": "2.3.2-2+b1",
+        "fixed_version": null,
+        "title": "acl: Symlink traversal privilege escalation via libacl functions"
+      },
+      {
+        "id": "CVE-2026-76642",
+        "package": "libblkid1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks"
+      },
+      {
+        "id": "CVE-2026-78408",
+        "package": "libblkid1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority"
+      },
+      {
+        "id": "CVE-2026-78409",
+        "package": "libblkid1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks"
+      },
+      {
+        "id": "CVE-2026-78410",
+        "package": "libblkid1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection"
+      },
+      {
+        "id": "CVE-2026-76642",
+        "package": "liblastlog2-2",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks"
+      },
+      {
+        "id": "CVE-2026-78408",
+        "package": "liblastlog2-2",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority"
+      },
+      {
+        "id": "CVE-2026-78409",
+        "package": "liblastlog2-2",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks"
+      },
+      {
+        "id": "CVE-2026-78410",
+        "package": "liblastlog2-2",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection"
+      },
+      {
+        "id": "CVE-2026-76642",
+        "package": "libmount1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks"
+      },
+      {
+        "id": "CVE-2026-78408",
+        "package": "libmount1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority"
+      },
+      {
+        "id": "CVE-2026-78409",
+        "package": "libmount1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks"
+      },
+      {
+        "id": "CVE-2026-78410",
+        "package": "libmount1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection"
+      },
+      {
+        "id": "CVE-2025-69720",
+        "package": "libncursesw6",
+        "version": "6.5+20250216-2",
+        "fixed_version": null,
+        "title": "ncurses: ncurses: Buffer overflow vulnerability may lead to arbitrary code execution."
+      },
+      {
+        "id": "CVE-2026-76642",
+        "package": "libsmartcols1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks"
+      },
+      {
+        "id": "CVE-2026-78408",
+        "package": "libsmartcols1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority"
+      },
+      {
+        "id": "CVE-2026-78409",
+        "package": "libsmartcols1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks"
+      },
+      {
+        "id": "CVE-2026-78410",
+        "package": "libsmartcols1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection"
+      },
+      {
+        "id": "CVE-2026-16742",
+        "package": "libsystemd0",
+        "version": "257.13-1~deb13u1",
+        "fixed_version": null,
+        "title": "systemd: systemd-homed: Local privilege escalation via missing home-record signature verification"
+      },
+      {
+        "id": "CVE-2025-69720",
+        "package": "libtinfo6",
+        "version": "6.5+20250216-2",
+        "fixed_version": null,
+        "title": "ncurses: ncurses: Buffer overflow vulnerability may lead to arbitrary code execution."
+      },
+      {
+        "id": "CVE-2026-16742",
+        "package": "libudev1",
+        "version": "257.13-1~deb13u1",
+        "fixed_version": null,
+        "title": "systemd: systemd-homed: Local privilege escalation via missing home-record signature verification"
+      },
+      {
+        "id": "CVE-2026-76642",
+        "package": "libuuid1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks"
+      },
+      {
+        "id": "CVE-2026-78408",
+        "package": "libuuid1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority"
+      },
+      {
+        "id": "CVE-2026-78409",
+        "package": "libuuid1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks"
+      },
+      {
+        "id": "CVE-2026-78410",
+        "package": "libuuid1",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection"
+      },
+      {
+        "id": "CVE-2026-76642",
+        "package": "login",
+        "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks"
+      },
+      {
+        "id": "CVE-2026-78408",
+        "package": "login",
+        "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority"
+      },
+      {
+        "id": "CVE-2026-78409",
+        "package": "login",
+        "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks"
+      },
+      {
+        "id": "CVE-2026-78410",
+        "package": "login",
+        "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection"
+      },
+      {
+        "id": "CVE-2026-76642",
+        "package": "mount",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks"
+      },
+      {
+        "id": "CVE-2026-78408",
+        "package": "mount",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority"
+      },
+      {
+        "id": "CVE-2026-78409",
+        "package": "mount",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks"
+      },
+      {
+        "id": "CVE-2026-78410",
+        "package": "mount",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection"
+      },
+      {
+        "id": "CVE-2025-69720",
+        "package": "ncurses-base",
+        "version": "6.5+20250216-2",
+        "fixed_version": null,
+        "title": "ncurses: ncurses: Buffer overflow vulnerability may lead to arbitrary code execution."
+      },
+      {
+        "id": "CVE-2025-69720",
+        "package": "ncurses-bin",
+        "version": "6.5+20250216-2",
+        "fixed_version": null,
+        "title": "ncurses: ncurses: Buffer overflow vulnerability may lead to arbitrary code execution."
+      },
+      {
+        "id": "CVE-2026-9538",
+        "package": "perl-base",
+        "version": "5.40.1-6+deb13u1",
+        "fixed_version": null,
+        "title": "perl-Archive-Tar: perl-Archive-Tar: Denial of Service via crafted tar header with large entry size"
+      },
+      {
+        "id": "CVE-2026-76642",
+        "package": "util-linux",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks"
+      },
+      {
+        "id": "CVE-2026-78408",
+        "package": "util-linux",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority"
+      },
+      {
+        "id": "CVE-2026-78409",
+        "package": "util-linux",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks"
+      },
+      {
+        "id": "CVE-2026-78410",
+        "package": "util-linux",
+        "version": "2.41.5-0+deb13u1",
+        "fixed_version": null,
+        "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection"
+      }
+    ]
+  },
+  "benchmark": {
+    "dataset": "10000 completed jobs with acknowledged current statuses",
+    "iterations": 30,
+    "before": {
+      "milliseconds_per_refresh": 6.143,
+      "query_plan": [
+        [
+          4,
+          0,
+          0,
+          "SCAN j"
+        ],
+        [
+          6,
+          0,
+          0,
+          "SEARCH o USING INDEX sqlite_autoindex_outbox_1 (job_id=? AND generation=? AND operation=?) LEFT-JOIN"
+        ]
+      ]
+    },
+    "after": {
+      "milliseconds_per_refresh": 0.098,
+      "query_plan": [
+        [
+          4,
+          0,
+          0,
+          "SEARCH j USING INTEGER PRIMARY KEY (rowid=?)"
+        ],
+        [
+          8,
+          0,
+          0,
+          "LIST SUBQUERY 3"
+        ],
+        [
+          10,
+          8,
+          0,
+          "COMPOUND QUERY"
+        ],
+        [
+          11,
+          10,
+          0,
+          "LEFT-MOST SUBQUERY"
+        ],
+        [
+          13,
+          11,
+          0,
+          "SEARCH jobs USING COVERING INDEX jobs_queue (status=?)"
+        ],
+        [
+          42,
+          10,
+          0,
+          "UNION USING TEMP B-TREE"
+        ],
+        [
+          44,
+          42,
+          0,
+          "SCAN dirty_status"
+        ],
+        [
+          50,
+          10,
+          0,
+          "UNION USING TEMP B-TREE"
+        ],
+        [
+          52,
+          50,
+          0,
+          "SEARCH jobs USING COVERING INDEX jobs_failed_retention (retention_until<?)"
+        ],
+        [
+          75,
+          0,
+          0,
+          "SEARCH o USING INDEX sqlite_autoindex_outbox_1 (job_id=? AND generation=? AND operation=?) LEFT-JOIN"
+        ]
+      ]
+    }
+  },
+  "final_images": {
+    "app": {
+      "image": "transcriptbot-app:audit",
+      "id": "sha256:c49690c6f8befab716b0944c844ec0447c0c9a997f95af1587880cd86443e7d8",
+      "records_all_severities": 164,
+      "unique_ids": 71,
+      "fixable_records": 0,
+      "severity_counts": {
+        "LOW": 61,
+        "HIGH": 44,
+        "MEDIUM": 58,
+        "UNKNOWN": 1
+      },
+      "records": [
+        {
+          "id": "CVE-2011-3374",
+          "severity": "LOW",
+          "package": "apt",
+          "version": "3.0.3",
+          "fixed_version": null,
+          "title": "It was found that apt-key in apt, all versions, do not correctly valid ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2011-3374"
+        },
+        {
+          "id": "TEMP-0841856-B18BAF",
+          "severity": "LOW",
+          "package": "bash",
+          "version": "5.2.37-2+b10",
+          "fixed_version": null,
+          "title": "[Privilege escalation possible to other user than root]",
+          "source": "https://security-tracker.debian.org/tracker/TEMP-0841856-B18BAF"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "bsdutils",
+          "version": "1:2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "bsdutils",
+          "version": "1:2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "bsdutils",
+          "version": "1:2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "bsdutils",
+          "version": "1:2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "bsdutils",
+          "version": "1:2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "bsdutils",
+          "version": "1:2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2017-18018",
+          "severity": "LOW",
+          "package": "coreutils",
+          "version": "9.7-3",
+          "fixed_version": null,
+          "title": "coreutils: race condition vulnerability in chown and chgrp",
+          "source": "https://avd.aquasec.com/nvd/cve-2017-18018"
+        },
+        {
+          "id": "CVE-2025-5278",
+          "severity": "LOW",
+          "package": "coreutils",
+          "version": "9.7-3",
+          "fixed_version": null,
+          "title": "coreutils: Heap Buffer Under-Read in GNU Coreutils sort via Key Specification",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-5278"
+        },
+        {
+          "id": "CVE-2026-56391",
+          "severity": "LOW",
+          "package": "coreutils",
+          "version": "9.7-3",
+          "fixed_version": null,
+          "title": "coreutils: GNU coreutils uniq: Denial of Service and information disclosure via out-of-bounds read with multibyte input",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-56391"
+        },
+        {
+          "id": "CVE-2026-56392",
+          "severity": "LOW",
+          "package": "coreutils",
+          "version": "9.7-3",
+          "fixed_version": null,
+          "title": "coreutils: GNU coreutils unexpand: Denial of Service via crafted tab stop values",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-56392"
+        },
+        {
+          "id": "CVE-2026-102473",
+          "severity": "LOW",
+          "package": "dash",
+          "version": "0.5.12-12",
+          "fixed_version": null,
+          "title": "dash: dash: Super-polynomial backtracking in pmatch when libc fnmatch is disabled",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-102473"
+        },
+        {
+          "id": "CVE-2026-102474",
+          "severity": "LOW",
+          "package": "dash",
+          "version": "0.5.12-12",
+          "fixed_version": null,
+          "title": "dash: dash: Heap out-of-bounds write in conv_escape via undersized Unicode escape reservation",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-102474"
+        },
+        {
+          "id": "CVE-2026-53910",
+          "severity": "LOW",
+          "package": "diffutils",
+          "version": "1:3.10-4",
+          "fixed_version": null,
+          "title": "diffutils: heap‑based buffer overflow due to multiple signed integer overflows in line‑mapping calculations",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-53910"
+        },
+        {
+          "id": "CVE-2026-102010",
+          "severity": "MEDIUM",
+          "package": "gcc-14-base",
+          "version": "14.2.0-19",
+          "fixed_version": null,
+          "title": "gcc-toolset-15-gcc: gcc: gcc-toolset-16: gcc: Denial of Service via use-after-free in binary heap erase_if",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-102010"
+        },
+        {
+          "id": "CVE-2026-95619",
+          "severity": "MEDIUM",
+          "package": "gcc-14-base",
+          "version": "14.2.0-19",
+          "fixed_version": null,
+          "title": "gcc: libstdc++ integer overflow in `new` operator",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-95619"
+        },
+        {
+          "id": "CVE-2026-54369",
+          "severity": "HIGH",
+          "package": "libacl1",
+          "version": "2.3.2-2+b1",
+          "fixed_version": null,
+          "title": "acl: Symlink traversal privilege escalation via libacl functions",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-54369"
+        },
+        {
+          "id": "CVE-2026-54370",
+          "severity": "MEDIUM",
+          "package": "libacl1",
+          "version": "2.3.2-2+b1",
+          "fixed_version": null,
+          "title": "acl: TOCTOU Symlink Traversal via getfacl/setfacl",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-54370"
+        },
+        {
+          "id": "CVE-2011-3374",
+          "severity": "LOW",
+          "package": "libapt-pkg7.0",
+          "version": "3.0.3",
+          "fixed_version": null,
+          "title": "It was found that apt-key in apt, all versions, do not correctly valid ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2011-3374"
+        },
+        {
+          "id": "CVE-2026-54371",
+          "severity": "MEDIUM",
+          "package": "libattr1",
+          "version": "1:2.5.2-3",
+          "fixed_version": null,
+          "title": "attr: attr: Symlink Traversal Privilege Escalation via getfattr and setfattr",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-54371"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "libblkid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "libblkid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "libblkid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "libblkid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "libblkid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "libblkid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2026-42250",
+          "severity": "MEDIUM",
+          "package": "libbz2-1.0",
+          "version": "1.0.8-6",
+          "fixed_version": null,
+          "title": "bzip2: bzip2: Denial of Service in bzip2recover via a specially crafted file",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-42250"
+        },
+        {
+          "id": "CVE-2026-18374",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Heap buffer overflow via attacker-controlled fopen mode string",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-18374"
+        },
+        {
+          "id": "CVE-2026-19499",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Buffer Overflow in strfmon right-justification padding",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-19499"
+        },
+        {
+          "id": "CVE-2026-19542",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Fix out-of-bounds array write in tdelete",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-19542"
+        },
+        {
+          "id": "CVE-2026-5435",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Out-of-bounds write via TSIG record processing",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-5435"
+        },
+        {
+          "id": "CVE-2026-6238",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Application crash or uninitialized memory read via crafted DNS response",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-6238"
+        },
+        {
+          "id": "CVE-2026-6368",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Process abort due to invalid memory in wordexp",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-6368"
+        },
+        {
+          "id": "CVE-2026-6791",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Glibc: Denial of Service via stack exhaustion during tilde expansion",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-6791"
+        },
+        {
+          "id": "CVE-2026-77117",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Non-progress DoS in SHIFT_JISX0213 -&gt",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-77117"
+        },
+        {
+          "id": "CVE-2026-80489",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Non-progress DoS in EUC_JISX0213 -> UCS-4 conversion state",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-80489"
+        },
+        {
+          "id": "CVE-2026-8674",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc DNS stub resolver: Denial of Service via long search domain in configuration",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-8674"
+        },
+        {
+          "id": "CVE-2026-86805",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Privilege escalation and arbitrary code execution via TOCTOU race condition in dynamic loader",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-86805"
+        },
+        {
+          "id": "CVE-2026-89092",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: nscd stack overflow leads to degraded DNS resolution",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-89092"
+        },
+        {
+          "id": "CVE-2026-95818",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Local attacker can cause denial of service and information disclosure via stack-based buffer overflow.",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-95818"
+        },
+        {
+          "id": "CVE-2010-4756",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glob implementation can cause excessive CPU and memory consumption due to crafted glob expressions",
+          "source": "https://avd.aquasec.com/nvd/cve-2010-4756"
+        },
+        {
+          "id": "CVE-2018-20796",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: uncontrolled recursion in function check_dst_limits_calc_pos_1 in posix/regexec.c",
+          "source": "https://avd.aquasec.com/nvd/cve-2018-20796"
+        },
+        {
+          "id": "CVE-2019-1010022",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: stack guard protection bypass",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010022"
+        },
+        {
+          "id": "CVE-2019-1010023",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: running ldd on malicious ELF leads to code execution because of wrong size computation",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010023"
+        },
+        {
+          "id": "CVE-2019-1010024",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: ASLR bypass using cache of thread stack and heap",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010024"
+        },
+        {
+          "id": "CVE-2019-1010025",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: information disclosure of heap addresses of pthread_created thread",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010025"
+        },
+        {
+          "id": "CVE-2019-9192",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: uncontrolled recursion in function check_dst_limits_calc_pos_1 in posix/regexec.c",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-9192"
+        },
+        {
+          "id": "CVE-2026-97399",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Denial of Service via out-of-bounds read in strncasecmp",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-97399"
+        },
+        {
+          "id": "CVE-2026-18374",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Heap buffer overflow via attacker-controlled fopen mode string",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-18374"
+        },
+        {
+          "id": "CVE-2026-19499",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Buffer Overflow in strfmon right-justification padding",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-19499"
+        },
+        {
+          "id": "CVE-2026-19542",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Fix out-of-bounds array write in tdelete",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-19542"
+        },
+        {
+          "id": "CVE-2026-5435",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Out-of-bounds write via TSIG record processing",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-5435"
+        },
+        {
+          "id": "CVE-2026-6238",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Application crash or uninitialized memory read via crafted DNS response",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-6238"
+        },
+        {
+          "id": "CVE-2026-6368",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Process abort due to invalid memory in wordexp",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-6368"
+        },
+        {
+          "id": "CVE-2026-6791",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Glibc: Denial of Service via stack exhaustion during tilde expansion",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-6791"
+        },
+        {
+          "id": "CVE-2026-77117",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Non-progress DoS in SHIFT_JISX0213 -&gt",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-77117"
+        },
+        {
+          "id": "CVE-2026-80489",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Non-progress DoS in EUC_JISX0213 -> UCS-4 conversion state",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-80489"
+        },
+        {
+          "id": "CVE-2026-8674",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc DNS stub resolver: Denial of Service via long search domain in configuration",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-8674"
+        },
+        {
+          "id": "CVE-2026-86805",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Privilege escalation and arbitrary code execution via TOCTOU race condition in dynamic loader",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-86805"
+        },
+        {
+          "id": "CVE-2026-89092",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: nscd stack overflow leads to degraded DNS resolution",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-89092"
+        },
+        {
+          "id": "CVE-2026-95818",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Local attacker can cause denial of service and information disclosure via stack-based buffer overflow.",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-95818"
+        },
+        {
+          "id": "CVE-2010-4756",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glob implementation can cause excessive CPU and memory consumption due to crafted glob expressions",
+          "source": "https://avd.aquasec.com/nvd/cve-2010-4756"
+        },
+        {
+          "id": "CVE-2018-20796",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: uncontrolled recursion in function check_dst_limits_calc_pos_1 in posix/regexec.c",
+          "source": "https://avd.aquasec.com/nvd/cve-2018-20796"
+        },
+        {
+          "id": "CVE-2019-1010022",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: stack guard protection bypass",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010022"
+        },
+        {
+          "id": "CVE-2019-1010023",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: running ldd on malicious ELF leads to code execution because of wrong size computation",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010023"
+        },
+        {
+          "id": "CVE-2019-1010024",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: ASLR bypass using cache of thread stack and heap",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010024"
+        },
+        {
+          "id": "CVE-2019-1010025",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: information disclosure of heap addresses of pthread_created thread",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010025"
+        },
+        {
+          "id": "CVE-2019-9192",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: uncontrolled recursion in function check_dst_limits_calc_pos_1 in posix/regexec.c",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-9192"
+        },
+        {
+          "id": "CVE-2026-97399",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Denial of Service via out-of-bounds read in strncasecmp",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-97399"
+        },
+        {
+          "id": "CVE-2026-102010",
+          "severity": "MEDIUM",
+          "package": "libgcc-s1",
+          "version": "14.2.0-19",
+          "fixed_version": null,
+          "title": "gcc-toolset-15-gcc: gcc: gcc-toolset-16: gcc: Denial of Service via use-after-free in binary heap erase_if",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-102010"
+        },
+        {
+          "id": "CVE-2026-95619",
+          "severity": "MEDIUM",
+          "package": "libgcc-s1",
+          "version": "14.2.0-19",
+          "fixed_version": null,
+          "title": "gcc: libstdc++ integer overflow in `new` operator",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-95619"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "liblastlog2-2",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "liblastlog2-2",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "liblastlog2-2",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "liblastlog2-2",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "liblastlog2-2",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "liblastlog2-2",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "libmount1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "libmount1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "libmount1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "libmount1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "libmount1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "libmount1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2025-69720",
+          "severity": "HIGH",
+          "package": "libncursesw6",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "ncurses: ncurses: Buffer overflow vulnerability may lead to arbitrary code execution.",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-69720"
+        },
+        {
+          "id": "CVE-2025-6141",
+          "severity": "LOW",
+          "package": "libncursesw6",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "gnu-ncurses: ncurses Stack Buffer Overflow",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-6141"
+        },
+        {
+          "id": "CVE-2026-54411",
+          "severity": "MEDIUM",
+          "package": "libpam-modules",
+          "version": "1.7.0-5",
+          "fixed_version": null,
+          "title": "linux-pam: Plaintext password recovery via timing discrepancy in pam_userdb module",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-54411"
+        },
+        {
+          "id": "CVE-2026-54411",
+          "severity": "MEDIUM",
+          "package": "libpam-modules-bin",
+          "version": "1.7.0-5",
+          "fixed_version": null,
+          "title": "linux-pam: Plaintext password recovery via timing discrepancy in pam_userdb module",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-54411"
+        },
+        {
+          "id": "CVE-2026-54411",
+          "severity": "MEDIUM",
+          "package": "libpam-runtime",
+          "version": "1.7.0-5",
+          "fixed_version": null,
+          "title": "linux-pam: Plaintext password recovery via timing discrepancy in pam_userdb module",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-54411"
+        },
+        {
+          "id": "CVE-2026-54411",
+          "severity": "MEDIUM",
+          "package": "libpam0g",
+          "version": "1.7.0-5",
+          "fixed_version": null,
+          "title": "linux-pam: Plaintext password recovery via timing discrepancy in pam_userdb module",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-54411"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "libsmartcols1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "libsmartcols1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "libsmartcols1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "libsmartcols1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "libsmartcols1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "libsmartcols1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2026-50812",
+          "severity": "MEDIUM",
+          "package": "libsqlite3-0",
+          "version": "3.46.1-7+deb13u2",
+          "fixed_version": null,
+          "title": "sqlite: SQLite: Denial of Service via malformed changeset in Session Extension",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-50812"
+        },
+        {
+          "id": "CVE-2026-50813",
+          "severity": "MEDIUM",
+          "package": "libsqlite3-0",
+          "version": "3.46.1-7+deb13u2",
+          "fixed_version": null,
+          "title": "sqlite: SQLite: Information disclosure via Session Extension changeset merge path",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-50813"
+        },
+        {
+          "id": "CVE-2021-45346",
+          "severity": "LOW",
+          "package": "libsqlite3-0",
+          "version": "3.46.1-7+deb13u2",
+          "fixed_version": null,
+          "title": "sqlite: crafted SQL query allows a malicious user to obtain sensitive information",
+          "source": "https://avd.aquasec.com/nvd/cve-2021-45346"
+        },
+        {
+          "id": "CVE-2025-70873",
+          "severity": "LOW",
+          "package": "libsqlite3-0",
+          "version": "3.46.1-7+deb13u2",
+          "fixed_version": null,
+          "title": "sqlite: SQLite: Information Disclosure via Crafted ZIP File",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-70873"
+        },
+        {
+          "id": "CVE-2026-102010",
+          "severity": "MEDIUM",
+          "package": "libstdc++6",
+          "version": "14.2.0-19",
+          "fixed_version": null,
+          "title": "gcc-toolset-15-gcc: gcc: gcc-toolset-16: gcc: Denial of Service via use-after-free in binary heap erase_if",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-102010"
+        },
+        {
+          "id": "CVE-2026-95619",
+          "severity": "MEDIUM",
+          "package": "libstdc++6",
+          "version": "14.2.0-19",
+          "fixed_version": null,
+          "title": "gcc: libstdc++ integer overflow in `new` operator",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-95619"
+        },
+        {
+          "id": "CVE-2026-16742",
+          "severity": "HIGH",
+          "package": "libsystemd0",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: systemd-homed: Local privilege escalation via missing home-record signature verification",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-16742"
+        },
+        {
+          "id": "CVE-2026-15059",
+          "severity": "MEDIUM",
+          "package": "libsystemd0",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: systemd-oomd: Unprivileged users can terminate arbitrary processes via IPC API",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-15059"
+        },
+        {
+          "id": "CVE-2013-4392",
+          "severity": "LOW",
+          "package": "libsystemd0",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: TOCTOU race condition when updating file permissions and SELinux security contexts",
+          "source": "https://avd.aquasec.com/nvd/cve-2013-4392"
+        },
+        {
+          "id": "CVE-2023-31437",
+          "severity": "LOW",
+          "package": "libsystemd0",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "An issue was discovered in systemd 253. An attacker can modify a seale ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2023-31437"
+        },
+        {
+          "id": "CVE-2023-31438",
+          "severity": "LOW",
+          "package": "libsystemd0",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "An issue was discovered in systemd 253. An attacker can truncate a sea ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2023-31438"
+        },
+        {
+          "id": "CVE-2023-31439",
+          "severity": "LOW",
+          "package": "libsystemd0",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "An issue was discovered in systemd 253. An attacker can modify the con ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2023-31439"
+        },
+        {
+          "id": "CVE-2026-40228",
+          "severity": "LOW",
+          "package": "libsystemd0",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: systemd-journald: Unintended output to user terminals via logger command",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-40228"
+        },
+        {
+          "id": "CVE-2025-69720",
+          "severity": "HIGH",
+          "package": "libtinfo6",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "ncurses: ncurses: Buffer overflow vulnerability may lead to arbitrary code execution.",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-69720"
+        },
+        {
+          "id": "CVE-2025-6141",
+          "severity": "LOW",
+          "package": "libtinfo6",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "gnu-ncurses: ncurses Stack Buffer Overflow",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-6141"
+        },
+        {
+          "id": "CVE-2026-16742",
+          "severity": "HIGH",
+          "package": "libudev1",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: systemd-homed: Local privilege escalation via missing home-record signature verification",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-16742"
+        },
+        {
+          "id": "CVE-2026-15059",
+          "severity": "MEDIUM",
+          "package": "libudev1",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: systemd-oomd: Unprivileged users can terminate arbitrary processes via IPC API",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-15059"
+        },
+        {
+          "id": "CVE-2013-4392",
+          "severity": "LOW",
+          "package": "libudev1",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: TOCTOU race condition when updating file permissions and SELinux security contexts",
+          "source": "https://avd.aquasec.com/nvd/cve-2013-4392"
+        },
+        {
+          "id": "CVE-2023-31437",
+          "severity": "LOW",
+          "package": "libudev1",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "An issue was discovered in systemd 253. An attacker can modify a seale ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2023-31437"
+        },
+        {
+          "id": "CVE-2023-31438",
+          "severity": "LOW",
+          "package": "libudev1",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "An issue was discovered in systemd 253. An attacker can truncate a sea ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2023-31438"
+        },
+        {
+          "id": "CVE-2023-31439",
+          "severity": "LOW",
+          "package": "libudev1",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "An issue was discovered in systemd 253. An attacker can modify the con ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2023-31439"
+        },
+        {
+          "id": "CVE-2026-40228",
+          "severity": "LOW",
+          "package": "libudev1",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: systemd-journald: Unintended output to user terminals via logger command",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-40228"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "libuuid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "libuuid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "libuuid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "libuuid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "libuuid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "libuuid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "login",
+          "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "login",
+          "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "login",
+          "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "login",
+          "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "login",
+          "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "login",
+          "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2007-5686",
+          "severity": "LOW",
+          "package": "login.defs",
+          "version": "1:4.17.4-2",
+          "fixed_version": null,
+          "title": "initscripts in rPath Linux 1 sets insecure permissions for the /var/lo ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2007-5686"
+        },
+        {
+          "id": "CVE-2024-56433",
+          "severity": "LOW",
+          "package": "login.defs",
+          "version": "1:4.17.4-2",
+          "fixed_version": null,
+          "title": "shadow-utils: Default subordinate ID configuration in /etc/login.defs could lead to compromise",
+          "source": "https://avd.aquasec.com/nvd/cve-2024-56433"
+        },
+        {
+          "id": "TEMP-0628843-DBAD28",
+          "severity": "LOW",
+          "package": "login.defs",
+          "version": "1:4.17.4-2",
+          "fixed_version": null,
+          "title": "[more related to CVE-2005-4890]",
+          "source": "https://security-tracker.debian.org/tracker/TEMP-0628843-DBAD28"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "mount",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "mount",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "mount",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "mount",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "mount",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "mount",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2025-69720",
+          "severity": "HIGH",
+          "package": "ncurses-base",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "ncurses: ncurses: Buffer overflow vulnerability may lead to arbitrary code execution.",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-69720"
+        },
+        {
+          "id": "CVE-2025-6141",
+          "severity": "LOW",
+          "package": "ncurses-base",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "gnu-ncurses: ncurses Stack Buffer Overflow",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-6141"
+        },
+        {
+          "id": "CVE-2025-69720",
+          "severity": "HIGH",
+          "package": "ncurses-bin",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "ncurses: ncurses: Buffer overflow vulnerability may lead to arbitrary code execution.",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-69720"
+        },
+        {
+          "id": "CVE-2025-6141",
+          "severity": "LOW",
+          "package": "ncurses-bin",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "gnu-ncurses: ncurses Stack Buffer Overflow",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-6141"
+        },
+        {
+          "id": "CVE-2007-5686",
+          "severity": "LOW",
+          "package": "passwd",
+          "version": "1:4.17.4-2",
+          "fixed_version": null,
+          "title": "initscripts in rPath Linux 1 sets insecure permissions for the /var/lo ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2007-5686"
+        },
+        {
+          "id": "CVE-2024-56433",
+          "severity": "LOW",
+          "package": "passwd",
+          "version": "1:4.17.4-2",
+          "fixed_version": null,
+          "title": "shadow-utils: Default subordinate ID configuration in /etc/login.defs could lead to compromise",
+          "source": "https://avd.aquasec.com/nvd/cve-2024-56433"
+        },
+        {
+          "id": "TEMP-0628843-DBAD28",
+          "severity": "LOW",
+          "package": "passwd",
+          "version": "1:4.17.4-2",
+          "fixed_version": null,
+          "title": "[more related to CVE-2005-4890]",
+          "source": "https://security-tracker.debian.org/tracker/TEMP-0628843-DBAD28"
+        },
+        {
+          "id": "CVE-2026-9538",
+          "severity": "HIGH",
+          "package": "perl-base",
+          "version": "5.40.1-6+deb13u1",
+          "fixed_version": null,
+          "title": "perl-Archive-Tar: perl-Archive-Tar: Denial of Service via crafted tar header with large entry size",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-9538"
+        },
+        {
+          "id": "CVE-2026-15534",
+          "severity": "MEDIUM",
+          "package": "perl-base",
+          "version": "5.40.1-6+deb13u1",
+          "fixed_version": null,
+          "title": "perl: Perl: Arbitrary code execution via out-of-bounds memory access in regular expression engine.",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-15534"
+        },
+        {
+          "id": "CVE-2011-4116",
+          "severity": "LOW",
+          "package": "perl-base",
+          "version": "5.40.1-6+deb13u1",
+          "fixed_version": null,
+          "title": "perl: File:: Temp insecure temporary file handling",
+          "source": "https://avd.aquasec.com/nvd/cve-2011-4116"
+        },
+        {
+          "id": "CVE-2026-82560",
+          "severity": "UNKNOWN",
+          "package": "perl-base",
+          "version": "5.40.1-6+deb13u1",
+          "fixed_version": null,
+          "title": "Pod::Text versions before 6.1.1 for Perl allow CPU and memory exhausti ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-82560"
+        },
+        {
+          "id": "TEMP-0517018-A83CE6",
+          "severity": "LOW",
+          "package": "sysvinit-utils",
+          "version": "3.14-4",
+          "fixed_version": null,
+          "title": "[sysvinit: no-root option in expert installer exposes locally exploitable security flaw]",
+          "source": "https://security-tracker.debian.org/tracker/TEMP-0517018-A83CE6"
+        },
+        {
+          "id": "CVE-2026-18477",
+          "severity": "MEDIUM",
+          "package": "tar",
+          "version": "1.35+dfsg-3.1",
+          "fixed_version": null,
+          "title": "tar: tar: TOCTOU in incremental dumpdir 'X' rename handling allows restore path escape",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-18477"
+        },
+        {
+          "id": "CVE-2026-18508",
+          "severity": "MEDIUM",
+          "package": "tar",
+          "version": "1.35+dfsg-3.1",
+          "fixed_version": null,
+          "title": "tar: tar: --one-top-level hardlink targets not confined to top-level directory enabling arbitrary file overwrite",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-18508"
+        },
+        {
+          "id": "CVE-2026-5704",
+          "severity": "MEDIUM",
+          "package": "tar",
+          "version": "1.35+dfsg-3.1",
+          "fixed_version": null,
+          "title": "tar: tar: Hidden file injection via crafted archives",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-5704"
+        },
+        {
+          "id": "CVE-2005-2541",
+          "severity": "LOW",
+          "package": "tar",
+          "version": "1.35+dfsg-3.1",
+          "fixed_version": null,
+          "title": "tar: does not properly warn the user when extracting setuid or setgid files",
+          "source": "https://avd.aquasec.com/nvd/cve-2005-2541"
+        },
+        {
+          "id": "TEMP-0290435-0B57B5",
+          "severity": "LOW",
+          "package": "tar",
+          "version": "1.35+dfsg-3.1",
+          "fixed_version": null,
+          "title": "[tar's rmt command may have undesired side effects]",
+          "source": "https://security-tracker.debian.org/tracker/TEMP-0290435-0B57B5"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "util-linux",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "util-linux",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "util-linux",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "util-linux",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "util-linux",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "util-linux",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2026-27171",
+          "severity": "MEDIUM",
+          "package": "zlib1g",
+          "version": "1:1.3.dfsg+really1.3.1-1+b1",
+          "fixed_version": null,
+          "title": "zlib: zlib: Denial of Service via infinite loop in CRC32 combine functions",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-27171"
+        },
+        {
+          "id": "CVE-2026-85091",
+          "severity": "MEDIUM",
+          "package": "zlib1g",
+          "version": "1:1.3.dfsg+really1.3.1-1+b1",
+          "fixed_version": null,
+          "title": "zlib versions 1.3.1.2 through 1.3.2 contain a heap buffer overflow vul ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-85091"
+        }
+      ]
+    },
+    "bot_api": {
+      "image": "transcriptbot-bot-api:audit",
+      "id": "sha256:8c7d82f5297100bc473467f3f3569b24e75f8e798fc02b461d981f29d708a78f",
+      "records_all_severities": 164,
+      "unique_ids": 71,
+      "fixable_records": 0,
+      "severity_counts": {
+        "LOW": 61,
+        "HIGH": 44,
+        "MEDIUM": 58,
+        "UNKNOWN": 1
+      },
+      "records": [
+        {
+          "id": "CVE-2011-3374",
+          "severity": "LOW",
+          "package": "apt",
+          "version": "3.0.3",
+          "fixed_version": null,
+          "title": "It was found that apt-key in apt, all versions, do not correctly valid ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2011-3374"
+        },
+        {
+          "id": "TEMP-0841856-B18BAF",
+          "severity": "LOW",
+          "package": "bash",
+          "version": "5.2.37-2+b10",
+          "fixed_version": null,
+          "title": "[Privilege escalation possible to other user than root]",
+          "source": "https://security-tracker.debian.org/tracker/TEMP-0841856-B18BAF"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "bsdutils",
+          "version": "1:2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "bsdutils",
+          "version": "1:2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "bsdutils",
+          "version": "1:2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "bsdutils",
+          "version": "1:2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "bsdutils",
+          "version": "1:2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "bsdutils",
+          "version": "1:2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2017-18018",
+          "severity": "LOW",
+          "package": "coreutils",
+          "version": "9.7-3",
+          "fixed_version": null,
+          "title": "coreutils: race condition vulnerability in chown and chgrp",
+          "source": "https://avd.aquasec.com/nvd/cve-2017-18018"
+        },
+        {
+          "id": "CVE-2025-5278",
+          "severity": "LOW",
+          "package": "coreutils",
+          "version": "9.7-3",
+          "fixed_version": null,
+          "title": "coreutils: Heap Buffer Under-Read in GNU Coreutils sort via Key Specification",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-5278"
+        },
+        {
+          "id": "CVE-2026-56391",
+          "severity": "LOW",
+          "package": "coreutils",
+          "version": "9.7-3",
+          "fixed_version": null,
+          "title": "coreutils: GNU coreutils uniq: Denial of Service and information disclosure via out-of-bounds read with multibyte input",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-56391"
+        },
+        {
+          "id": "CVE-2026-56392",
+          "severity": "LOW",
+          "package": "coreutils",
+          "version": "9.7-3",
+          "fixed_version": null,
+          "title": "coreutils: GNU coreutils unexpand: Denial of Service via crafted tab stop values",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-56392"
+        },
+        {
+          "id": "CVE-2026-102473",
+          "severity": "LOW",
+          "package": "dash",
+          "version": "0.5.12-12",
+          "fixed_version": null,
+          "title": "dash: dash: Super-polynomial backtracking in pmatch when libc fnmatch is disabled",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-102473"
+        },
+        {
+          "id": "CVE-2026-102474",
+          "severity": "LOW",
+          "package": "dash",
+          "version": "0.5.12-12",
+          "fixed_version": null,
+          "title": "dash: dash: Heap out-of-bounds write in conv_escape via undersized Unicode escape reservation",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-102474"
+        },
+        {
+          "id": "CVE-2026-53910",
+          "severity": "LOW",
+          "package": "diffutils",
+          "version": "1:3.10-4",
+          "fixed_version": null,
+          "title": "diffutils: heap‑based buffer overflow due to multiple signed integer overflows in line‑mapping calculations",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-53910"
+        },
+        {
+          "id": "CVE-2026-102010",
+          "severity": "MEDIUM",
+          "package": "gcc-14-base",
+          "version": "14.2.0-19",
+          "fixed_version": null,
+          "title": "gcc-toolset-15-gcc: gcc: gcc-toolset-16: gcc: Denial of Service via use-after-free in binary heap erase_if",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-102010"
+        },
+        {
+          "id": "CVE-2026-95619",
+          "severity": "MEDIUM",
+          "package": "gcc-14-base",
+          "version": "14.2.0-19",
+          "fixed_version": null,
+          "title": "gcc: libstdc++ integer overflow in `new` operator",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-95619"
+        },
+        {
+          "id": "CVE-2026-54369",
+          "severity": "HIGH",
+          "package": "libacl1",
+          "version": "2.3.2-2+b1",
+          "fixed_version": null,
+          "title": "acl: Symlink traversal privilege escalation via libacl functions",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-54369"
+        },
+        {
+          "id": "CVE-2026-54370",
+          "severity": "MEDIUM",
+          "package": "libacl1",
+          "version": "2.3.2-2+b1",
+          "fixed_version": null,
+          "title": "acl: TOCTOU Symlink Traversal via getfacl/setfacl",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-54370"
+        },
+        {
+          "id": "CVE-2011-3374",
+          "severity": "LOW",
+          "package": "libapt-pkg7.0",
+          "version": "3.0.3",
+          "fixed_version": null,
+          "title": "It was found that apt-key in apt, all versions, do not correctly valid ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2011-3374"
+        },
+        {
+          "id": "CVE-2026-54371",
+          "severity": "MEDIUM",
+          "package": "libattr1",
+          "version": "1:2.5.2-3",
+          "fixed_version": null,
+          "title": "attr: attr: Symlink Traversal Privilege Escalation via getfattr and setfattr",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-54371"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "libblkid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "libblkid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "libblkid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "libblkid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "libblkid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "libblkid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2026-42250",
+          "severity": "MEDIUM",
+          "package": "libbz2-1.0",
+          "version": "1.0.8-6",
+          "fixed_version": null,
+          "title": "bzip2: bzip2: Denial of Service in bzip2recover via a specially crafted file",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-42250"
+        },
+        {
+          "id": "CVE-2026-18374",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Heap buffer overflow via attacker-controlled fopen mode string",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-18374"
+        },
+        {
+          "id": "CVE-2026-19499",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Buffer Overflow in strfmon right-justification padding",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-19499"
+        },
+        {
+          "id": "CVE-2026-19542",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Fix out-of-bounds array write in tdelete",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-19542"
+        },
+        {
+          "id": "CVE-2026-5435",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Out-of-bounds write via TSIG record processing",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-5435"
+        },
+        {
+          "id": "CVE-2026-6238",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Application crash or uninitialized memory read via crafted DNS response",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-6238"
+        },
+        {
+          "id": "CVE-2026-6368",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Process abort due to invalid memory in wordexp",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-6368"
+        },
+        {
+          "id": "CVE-2026-6791",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Glibc: Denial of Service via stack exhaustion during tilde expansion",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-6791"
+        },
+        {
+          "id": "CVE-2026-77117",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Non-progress DoS in SHIFT_JISX0213 -&gt",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-77117"
+        },
+        {
+          "id": "CVE-2026-80489",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Non-progress DoS in EUC_JISX0213 -> UCS-4 conversion state",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-80489"
+        },
+        {
+          "id": "CVE-2026-8674",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc DNS stub resolver: Denial of Service via long search domain in configuration",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-8674"
+        },
+        {
+          "id": "CVE-2026-86805",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Privilege escalation and arbitrary code execution via TOCTOU race condition in dynamic loader",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-86805"
+        },
+        {
+          "id": "CVE-2026-89092",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: nscd stack overflow leads to degraded DNS resolution",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-89092"
+        },
+        {
+          "id": "CVE-2026-95818",
+          "severity": "MEDIUM",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Local attacker can cause denial of service and information disclosure via stack-based buffer overflow.",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-95818"
+        },
+        {
+          "id": "CVE-2010-4756",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glob implementation can cause excessive CPU and memory consumption due to crafted glob expressions",
+          "source": "https://avd.aquasec.com/nvd/cve-2010-4756"
+        },
+        {
+          "id": "CVE-2018-20796",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: uncontrolled recursion in function check_dst_limits_calc_pos_1 in posix/regexec.c",
+          "source": "https://avd.aquasec.com/nvd/cve-2018-20796"
+        },
+        {
+          "id": "CVE-2019-1010022",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: stack guard protection bypass",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010022"
+        },
+        {
+          "id": "CVE-2019-1010023",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: running ldd on malicious ELF leads to code execution because of wrong size computation",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010023"
+        },
+        {
+          "id": "CVE-2019-1010024",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: ASLR bypass using cache of thread stack and heap",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010024"
+        },
+        {
+          "id": "CVE-2019-1010025",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: information disclosure of heap addresses of pthread_created thread",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010025"
+        },
+        {
+          "id": "CVE-2019-9192",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: uncontrolled recursion in function check_dst_limits_calc_pos_1 in posix/regexec.c",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-9192"
+        },
+        {
+          "id": "CVE-2026-97399",
+          "severity": "LOW",
+          "package": "libc-bin",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Denial of Service via out-of-bounds read in strncasecmp",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-97399"
+        },
+        {
+          "id": "CVE-2026-18374",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Heap buffer overflow via attacker-controlled fopen mode string",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-18374"
+        },
+        {
+          "id": "CVE-2026-19499",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Buffer Overflow in strfmon right-justification padding",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-19499"
+        },
+        {
+          "id": "CVE-2026-19542",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Fix out-of-bounds array write in tdelete",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-19542"
+        },
+        {
+          "id": "CVE-2026-5435",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Out-of-bounds write via TSIG record processing",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-5435"
+        },
+        {
+          "id": "CVE-2026-6238",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Application crash or uninitialized memory read via crafted DNS response",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-6238"
+        },
+        {
+          "id": "CVE-2026-6368",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Process abort due to invalid memory in wordexp",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-6368"
+        },
+        {
+          "id": "CVE-2026-6791",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Glibc: Denial of Service via stack exhaustion during tilde expansion",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-6791"
+        },
+        {
+          "id": "CVE-2026-77117",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Non-progress DoS in SHIFT_JISX0213 -&gt",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-77117"
+        },
+        {
+          "id": "CVE-2026-80489",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: Non-progress DoS in EUC_JISX0213 -> UCS-4 conversion state",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-80489"
+        },
+        {
+          "id": "CVE-2026-8674",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc DNS stub resolver: Denial of Service via long search domain in configuration",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-8674"
+        },
+        {
+          "id": "CVE-2026-86805",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Privilege escalation and arbitrary code execution via TOCTOU race condition in dynamic loader",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-86805"
+        },
+        {
+          "id": "CVE-2026-89092",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: nscd stack overflow leads to degraded DNS resolution",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-89092"
+        },
+        {
+          "id": "CVE-2026-95818",
+          "severity": "MEDIUM",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Local attacker can cause denial of service and information disclosure via stack-based buffer overflow.",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-95818"
+        },
+        {
+          "id": "CVE-2010-4756",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glob implementation can cause excessive CPU and memory consumption due to crafted glob expressions",
+          "source": "https://avd.aquasec.com/nvd/cve-2010-4756"
+        },
+        {
+          "id": "CVE-2018-20796",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: uncontrolled recursion in function check_dst_limits_calc_pos_1 in posix/regexec.c",
+          "source": "https://avd.aquasec.com/nvd/cve-2018-20796"
+        },
+        {
+          "id": "CVE-2019-1010022",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: stack guard protection bypass",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010022"
+        },
+        {
+          "id": "CVE-2019-1010023",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: running ldd on malicious ELF leads to code execution because of wrong size computation",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010023"
+        },
+        {
+          "id": "CVE-2019-1010024",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: ASLR bypass using cache of thread stack and heap",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010024"
+        },
+        {
+          "id": "CVE-2019-1010025",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: information disclosure of heap addresses of pthread_created thread",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-1010025"
+        },
+        {
+          "id": "CVE-2019-9192",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: uncontrolled recursion in function check_dst_limits_calc_pos_1 in posix/regexec.c",
+          "source": "https://avd.aquasec.com/nvd/cve-2019-9192"
+        },
+        {
+          "id": "CVE-2026-97399",
+          "severity": "LOW",
+          "package": "libc6",
+          "version": "2.41-12+deb13u4",
+          "fixed_version": null,
+          "title": "glibc: glibc: Denial of Service via out-of-bounds read in strncasecmp",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-97399"
+        },
+        {
+          "id": "CVE-2026-102010",
+          "severity": "MEDIUM",
+          "package": "libgcc-s1",
+          "version": "14.2.0-19",
+          "fixed_version": null,
+          "title": "gcc-toolset-15-gcc: gcc: gcc-toolset-16: gcc: Denial of Service via use-after-free in binary heap erase_if",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-102010"
+        },
+        {
+          "id": "CVE-2026-95619",
+          "severity": "MEDIUM",
+          "package": "libgcc-s1",
+          "version": "14.2.0-19",
+          "fixed_version": null,
+          "title": "gcc: libstdc++ integer overflow in `new` operator",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-95619"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "liblastlog2-2",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "liblastlog2-2",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "liblastlog2-2",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "liblastlog2-2",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "liblastlog2-2",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "liblastlog2-2",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "libmount1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "libmount1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "libmount1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "libmount1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "libmount1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "libmount1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2025-69720",
+          "severity": "HIGH",
+          "package": "libncursesw6",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "ncurses: ncurses: Buffer overflow vulnerability may lead to arbitrary code execution.",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-69720"
+        },
+        {
+          "id": "CVE-2025-6141",
+          "severity": "LOW",
+          "package": "libncursesw6",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "gnu-ncurses: ncurses Stack Buffer Overflow",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-6141"
+        },
+        {
+          "id": "CVE-2026-54411",
+          "severity": "MEDIUM",
+          "package": "libpam-modules",
+          "version": "1.7.0-5",
+          "fixed_version": null,
+          "title": "linux-pam: Plaintext password recovery via timing discrepancy in pam_userdb module",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-54411"
+        },
+        {
+          "id": "CVE-2026-54411",
+          "severity": "MEDIUM",
+          "package": "libpam-modules-bin",
+          "version": "1.7.0-5",
+          "fixed_version": null,
+          "title": "linux-pam: Plaintext password recovery via timing discrepancy in pam_userdb module",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-54411"
+        },
+        {
+          "id": "CVE-2026-54411",
+          "severity": "MEDIUM",
+          "package": "libpam-runtime",
+          "version": "1.7.0-5",
+          "fixed_version": null,
+          "title": "linux-pam: Plaintext password recovery via timing discrepancy in pam_userdb module",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-54411"
+        },
+        {
+          "id": "CVE-2026-54411",
+          "severity": "MEDIUM",
+          "package": "libpam0g",
+          "version": "1.7.0-5",
+          "fixed_version": null,
+          "title": "linux-pam: Plaintext password recovery via timing discrepancy in pam_userdb module",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-54411"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "libsmartcols1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "libsmartcols1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "libsmartcols1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "libsmartcols1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "libsmartcols1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "libsmartcols1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2026-50812",
+          "severity": "MEDIUM",
+          "package": "libsqlite3-0",
+          "version": "3.46.1-7+deb13u2",
+          "fixed_version": null,
+          "title": "sqlite: SQLite: Denial of Service via malformed changeset in Session Extension",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-50812"
+        },
+        {
+          "id": "CVE-2026-50813",
+          "severity": "MEDIUM",
+          "package": "libsqlite3-0",
+          "version": "3.46.1-7+deb13u2",
+          "fixed_version": null,
+          "title": "sqlite: SQLite: Information disclosure via Session Extension changeset merge path",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-50813"
+        },
+        {
+          "id": "CVE-2021-45346",
+          "severity": "LOW",
+          "package": "libsqlite3-0",
+          "version": "3.46.1-7+deb13u2",
+          "fixed_version": null,
+          "title": "sqlite: crafted SQL query allows a malicious user to obtain sensitive information",
+          "source": "https://avd.aquasec.com/nvd/cve-2021-45346"
+        },
+        {
+          "id": "CVE-2025-70873",
+          "severity": "LOW",
+          "package": "libsqlite3-0",
+          "version": "3.46.1-7+deb13u2",
+          "fixed_version": null,
+          "title": "sqlite: SQLite: Information Disclosure via Crafted ZIP File",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-70873"
+        },
+        {
+          "id": "CVE-2026-102010",
+          "severity": "MEDIUM",
+          "package": "libstdc++6",
+          "version": "14.2.0-19",
+          "fixed_version": null,
+          "title": "gcc-toolset-15-gcc: gcc: gcc-toolset-16: gcc: Denial of Service via use-after-free in binary heap erase_if",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-102010"
+        },
+        {
+          "id": "CVE-2026-95619",
+          "severity": "MEDIUM",
+          "package": "libstdc++6",
+          "version": "14.2.0-19",
+          "fixed_version": null,
+          "title": "gcc: libstdc++ integer overflow in `new` operator",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-95619"
+        },
+        {
+          "id": "CVE-2026-16742",
+          "severity": "HIGH",
+          "package": "libsystemd0",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: systemd-homed: Local privilege escalation via missing home-record signature verification",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-16742"
+        },
+        {
+          "id": "CVE-2026-15059",
+          "severity": "MEDIUM",
+          "package": "libsystemd0",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: systemd-oomd: Unprivileged users can terminate arbitrary processes via IPC API",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-15059"
+        },
+        {
+          "id": "CVE-2013-4392",
+          "severity": "LOW",
+          "package": "libsystemd0",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: TOCTOU race condition when updating file permissions and SELinux security contexts",
+          "source": "https://avd.aquasec.com/nvd/cve-2013-4392"
+        },
+        {
+          "id": "CVE-2023-31437",
+          "severity": "LOW",
+          "package": "libsystemd0",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "An issue was discovered in systemd 253. An attacker can modify a seale ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2023-31437"
+        },
+        {
+          "id": "CVE-2023-31438",
+          "severity": "LOW",
+          "package": "libsystemd0",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "An issue was discovered in systemd 253. An attacker can truncate a sea ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2023-31438"
+        },
+        {
+          "id": "CVE-2023-31439",
+          "severity": "LOW",
+          "package": "libsystemd0",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "An issue was discovered in systemd 253. An attacker can modify the con ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2023-31439"
+        },
+        {
+          "id": "CVE-2026-40228",
+          "severity": "LOW",
+          "package": "libsystemd0",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: systemd-journald: Unintended output to user terminals via logger command",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-40228"
+        },
+        {
+          "id": "CVE-2025-69720",
+          "severity": "HIGH",
+          "package": "libtinfo6",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "ncurses: ncurses: Buffer overflow vulnerability may lead to arbitrary code execution.",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-69720"
+        },
+        {
+          "id": "CVE-2025-6141",
+          "severity": "LOW",
+          "package": "libtinfo6",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "gnu-ncurses: ncurses Stack Buffer Overflow",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-6141"
+        },
+        {
+          "id": "CVE-2026-16742",
+          "severity": "HIGH",
+          "package": "libudev1",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: systemd-homed: Local privilege escalation via missing home-record signature verification",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-16742"
+        },
+        {
+          "id": "CVE-2026-15059",
+          "severity": "MEDIUM",
+          "package": "libudev1",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: systemd-oomd: Unprivileged users can terminate arbitrary processes via IPC API",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-15059"
+        },
+        {
+          "id": "CVE-2013-4392",
+          "severity": "LOW",
+          "package": "libudev1",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: TOCTOU race condition when updating file permissions and SELinux security contexts",
+          "source": "https://avd.aquasec.com/nvd/cve-2013-4392"
+        },
+        {
+          "id": "CVE-2023-31437",
+          "severity": "LOW",
+          "package": "libudev1",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "An issue was discovered in systemd 253. An attacker can modify a seale ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2023-31437"
+        },
+        {
+          "id": "CVE-2023-31438",
+          "severity": "LOW",
+          "package": "libudev1",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "An issue was discovered in systemd 253. An attacker can truncate a sea ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2023-31438"
+        },
+        {
+          "id": "CVE-2023-31439",
+          "severity": "LOW",
+          "package": "libudev1",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "An issue was discovered in systemd 253. An attacker can modify the con ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2023-31439"
+        },
+        {
+          "id": "CVE-2026-40228",
+          "severity": "LOW",
+          "package": "libudev1",
+          "version": "257.13-1~deb13u1",
+          "fixed_version": null,
+          "title": "systemd: systemd-journald: Unintended output to user terminals via logger command",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-40228"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "libuuid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "libuuid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "libuuid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "libuuid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "libuuid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "libuuid1",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "login",
+          "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "login",
+          "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "login",
+          "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "login",
+          "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "login",
+          "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "login",
+          "version": "1:4.16.0-2+really2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2007-5686",
+          "severity": "LOW",
+          "package": "login.defs",
+          "version": "1:4.17.4-2",
+          "fixed_version": null,
+          "title": "initscripts in rPath Linux 1 sets insecure permissions for the /var/lo ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2007-5686"
+        },
+        {
+          "id": "CVE-2024-56433",
+          "severity": "LOW",
+          "package": "login.defs",
+          "version": "1:4.17.4-2",
+          "fixed_version": null,
+          "title": "shadow-utils: Default subordinate ID configuration in /etc/login.defs could lead to compromise",
+          "source": "https://avd.aquasec.com/nvd/cve-2024-56433"
+        },
+        {
+          "id": "TEMP-0628843-DBAD28",
+          "severity": "LOW",
+          "package": "login.defs",
+          "version": "1:4.17.4-2",
+          "fixed_version": null,
+          "title": "[more related to CVE-2005-4890]",
+          "source": "https://security-tracker.debian.org/tracker/TEMP-0628843-DBAD28"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "mount",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "mount",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "mount",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "mount",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "mount",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "mount",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2025-69720",
+          "severity": "HIGH",
+          "package": "ncurses-base",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "ncurses: ncurses: Buffer overflow vulnerability may lead to arbitrary code execution.",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-69720"
+        },
+        {
+          "id": "CVE-2025-6141",
+          "severity": "LOW",
+          "package": "ncurses-base",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "gnu-ncurses: ncurses Stack Buffer Overflow",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-6141"
+        },
+        {
+          "id": "CVE-2025-69720",
+          "severity": "HIGH",
+          "package": "ncurses-bin",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "ncurses: ncurses: Buffer overflow vulnerability may lead to arbitrary code execution.",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-69720"
+        },
+        {
+          "id": "CVE-2025-6141",
+          "severity": "LOW",
+          "package": "ncurses-bin",
+          "version": "6.5+20250216-2",
+          "fixed_version": null,
+          "title": "gnu-ncurses: ncurses Stack Buffer Overflow",
+          "source": "https://avd.aquasec.com/nvd/cve-2025-6141"
+        },
+        {
+          "id": "CVE-2007-5686",
+          "severity": "LOW",
+          "package": "passwd",
+          "version": "1:4.17.4-2",
+          "fixed_version": null,
+          "title": "initscripts in rPath Linux 1 sets insecure permissions for the /var/lo ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2007-5686"
+        },
+        {
+          "id": "CVE-2024-56433",
+          "severity": "LOW",
+          "package": "passwd",
+          "version": "1:4.17.4-2",
+          "fixed_version": null,
+          "title": "shadow-utils: Default subordinate ID configuration in /etc/login.defs could lead to compromise",
+          "source": "https://avd.aquasec.com/nvd/cve-2024-56433"
+        },
+        {
+          "id": "TEMP-0628843-DBAD28",
+          "severity": "LOW",
+          "package": "passwd",
+          "version": "1:4.17.4-2",
+          "fixed_version": null,
+          "title": "[more related to CVE-2005-4890]",
+          "source": "https://security-tracker.debian.org/tracker/TEMP-0628843-DBAD28"
+        },
+        {
+          "id": "CVE-2026-9538",
+          "severity": "HIGH",
+          "package": "perl-base",
+          "version": "5.40.1-6+deb13u1",
+          "fixed_version": null,
+          "title": "perl-Archive-Tar: perl-Archive-Tar: Denial of Service via crafted tar header with large entry size",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-9538"
+        },
+        {
+          "id": "CVE-2026-15534",
+          "severity": "MEDIUM",
+          "package": "perl-base",
+          "version": "5.40.1-6+deb13u1",
+          "fixed_version": null,
+          "title": "perl: Perl: Arbitrary code execution via out-of-bounds memory access in regular expression engine.",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-15534"
+        },
+        {
+          "id": "CVE-2011-4116",
+          "severity": "LOW",
+          "package": "perl-base",
+          "version": "5.40.1-6+deb13u1",
+          "fixed_version": null,
+          "title": "perl: File:: Temp insecure temporary file handling",
+          "source": "https://avd.aquasec.com/nvd/cve-2011-4116"
+        },
+        {
+          "id": "CVE-2026-82560",
+          "severity": "UNKNOWN",
+          "package": "perl-base",
+          "version": "5.40.1-6+deb13u1",
+          "fixed_version": null,
+          "title": "Pod::Text versions before 6.1.1 for Perl allow CPU and memory exhausti ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-82560"
+        },
+        {
+          "id": "TEMP-0517018-A83CE6",
+          "severity": "LOW",
+          "package": "sysvinit-utils",
+          "version": "3.14-4",
+          "fixed_version": null,
+          "title": "[sysvinit: no-root option in expert installer exposes locally exploitable security flaw]",
+          "source": "https://security-tracker.debian.org/tracker/TEMP-0517018-A83CE6"
+        },
+        {
+          "id": "CVE-2026-18477",
+          "severity": "MEDIUM",
+          "package": "tar",
+          "version": "1.35+dfsg-3.1",
+          "fixed_version": null,
+          "title": "tar: tar: TOCTOU in incremental dumpdir 'X' rename handling allows restore path escape",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-18477"
+        },
+        {
+          "id": "CVE-2026-18508",
+          "severity": "MEDIUM",
+          "package": "tar",
+          "version": "1.35+dfsg-3.1",
+          "fixed_version": null,
+          "title": "tar: tar: --one-top-level hardlink targets not confined to top-level directory enabling arbitrary file overwrite",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-18508"
+        },
+        {
+          "id": "CVE-2026-5704",
+          "severity": "MEDIUM",
+          "package": "tar",
+          "version": "1.35+dfsg-3.1",
+          "fixed_version": null,
+          "title": "tar: tar: Hidden file injection via crafted archives",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-5704"
+        },
+        {
+          "id": "CVE-2005-2541",
+          "severity": "LOW",
+          "package": "tar",
+          "version": "1.35+dfsg-3.1",
+          "fixed_version": null,
+          "title": "tar: does not properly warn the user when extracting setuid or setgid files",
+          "source": "https://avd.aquasec.com/nvd/cve-2005-2541"
+        },
+        {
+          "id": "TEMP-0290435-0B57B5",
+          "severity": "LOW",
+          "package": "tar",
+          "version": "1.35+dfsg-3.1",
+          "fixed_version": null,
+          "title": "[tar's rmt command may have undesired side effects]",
+          "source": "https://security-tracker.debian.org/tracker/TEMP-0290435-0B57B5"
+        },
+        {
+          "id": "CVE-2026-76642",
+          "severity": "HIGH",
+          "package": "util-linux",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-76642"
+        },
+        {
+          "id": "CVE-2026-78408",
+          "severity": "HIGH",
+          "package": "util-linux",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: nsenter --join-cgroup leaks root cgroup migration authority",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78408"
+        },
+        {
+          "id": "CVE-2026-78409",
+          "severity": "HIGH",
+          "package": "util-linux",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: X-mount.subdir detached-tree resolution can escape via intermediate symlinks",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78409"
+        },
+        {
+          "id": "CVE-2026-78410",
+          "severity": "HIGH",
+          "package": "util-linux",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: restricted bind mounts do not pin the source, allowing X-mount.owner/group/mode redirection",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-78410"
+        },
+        {
+          "id": "CVE-2026-3184",
+          "severity": "MEDIUM",
+          "package": "util-linux",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: util-linux: Access control bypass due to improper hostname canonicalization",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-3184"
+        },
+        {
+          "id": "CVE-2022-0563",
+          "severity": "LOW",
+          "package": "util-linux",
+          "version": "2.41.5-0+deb13u1",
+          "fixed_version": null,
+          "title": "util-linux: partial disclosure of arbitrary files in chfn and chsh when compiled with libreadline",
+          "source": "https://avd.aquasec.com/nvd/cve-2022-0563"
+        },
+        {
+          "id": "CVE-2026-27171",
+          "severity": "MEDIUM",
+          "package": "zlib1g",
+          "version": "1:1.3.dfsg+really1.3.1-1+b1",
+          "fixed_version": null,
+          "title": "zlib: zlib: Denial of Service via infinite loop in CRC32 combine functions",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-27171"
+        },
+        {
+          "id": "CVE-2026-85091",
+          "severity": "MEDIUM",
+          "package": "zlib1g",
+          "version": "1:1.3.dfsg+really1.3.1-1+b1",
+          "fixed_version": null,
+          "title": "zlib versions 1.3.1.2 through 1.3.2 contain a heap buffer overflow vul ...",
+          "source": "https://avd.aquasec.com/nvd/cve-2026-85091"
+        }
+      ]
+    }
+  },
+  "deno": {
+    "version": "2.9.7",
+    "official_advisories_reviewed": 40,
+    "known_affected": false,
+    "source": "https://github.com/denoland/deno/security/advisories"
+  },
+  "validation": {
+    "pytest_passed": 399,
+    "warnings": 0,
+    "full_container_gate": "passed",
+    "media_formats": 11,
+    "media_formats_gate": "passed",
+    "installed_package_gates": "passed on final images",
+    "multiple_audio_tracks": "passed",
+    "telegram_passed": 66,
+    "static_lock_build": "passed"
+  },
+  "residual_reachability_app": {
+    "systemd_homed_present": false,
+    "perl_archive_tar_importable": false,
+    "infocmp_present": true,
+    "mount_present": true,
+    "nsenter_present": true
+  },
+  "status": "local audit complete; unfixed distro findings and live Telegram acceptance tracked"
+}
