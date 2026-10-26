@@ -144,6 +144,9 @@ docker compose start telegram-bot-api bot worker
 пакет, restart, завершение процессов, пять миграций, крупный `getFile` на
 подставном HTTP API, очистку и повторное скачивание, сохранение служебных данных,
 снимок SQLite с рабочими файлами, восстановление и heartbeat.
+Новый образ до замены рабочего тега проверяется так:
+`TRANSCRIPTBOT_APP_IMAGE=transcriptbot-app:<кандидат> python3 scripts/check_containers.py`
+(`TRANSCRIPTBOT_API_IMAGE` аналогично для Bot API).
 
 Подставной API не подтверждает реальное поведение TDLib. Перед эксплуатационной
 готовностью v1 отдельно требуется живой Telegram-файл больше 20 МБ: `getFile`,

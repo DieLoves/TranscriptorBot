@@ -30,7 +30,7 @@ class GroqAdapter:
     async def close(self) -> None:
         await self.client.close()
 
-    async def transcribe(self, path: Path) -> dict:
+    async def transcribe(self, path: Path, prompt: str | None = None) -> dict:
         if not 0 < path.stat().st_size <= self.settings.groq_max_upload_bytes:
             raise PipelineError("upload_size_limit")
         try:
@@ -41,6 +41,7 @@ class GroqAdapter:
                         model=self.settings.groq_model,
                         response_format="verbose_json",
                         timestamp_granularities=["segment"],
+                        **({"prompt": prompt} if prompt else {}),
                     ) as response:
                         data = bytearray()
                         async for block in response.iter_bytes():

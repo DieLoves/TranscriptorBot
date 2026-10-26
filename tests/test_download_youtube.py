@@ -42,7 +42,8 @@ def info(**changes):
     "url",
     [
         "https://www.youtube.com/playlist?list=123",
-        "https://www.youtube.com/watch?v=a&list=b",
+        # A video opened from a playlist is accepted; only playlist context without v is not.
+        "https://www.youtube.com/watch?list=b&index=2",
         "https://example.com/video",
     ],
 )

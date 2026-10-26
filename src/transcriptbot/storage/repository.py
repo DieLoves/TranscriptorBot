@@ -1,5 +1,6 @@
 """Atomic queue operations shared by reception, worker and delivery."""
 
+import json
 import math
 import re
 import sqlite3
@@ -755,6 +756,22 @@ class Repository:
             )
 
         return await self.database.transaction(used)
+
+    async def finished_jobs(self, job_ids: list[int]) -> list[int]:
+        """Jobs that can never deliver again and whose files are already removed."""
+        if not job_ids:
+            return []
+        return await self.database.call(
+            lambda c: [
+                row[0]
+                for row in c.execute(
+                    "SELECT id FROM jobs WHERE id IN (SELECT value FROM json_each(?)) "
+                    "AND cleanup_pending = 0 AND (status IN ('completed', 'cancelled') "
+                    "OR (status = 'failed' AND resumable = 0)) ORDER BY id",
+                    (json.dumps(job_ids),),
+                )
+            ]
+        )
 
     async def finish_cleanup(self, expected: Job) -> None:
         def finish(c):

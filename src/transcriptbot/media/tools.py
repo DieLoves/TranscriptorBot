@@ -4,13 +4,14 @@ import asyncio
 import os
 import signal
 import wave
+from collections.abc import Callable
 from contextlib import suppress
 from pathlib import Path
 
 from transcriptbot.config import Settings
 from transcriptbot.downloaders.files import DEMUXERS, fsync_directory, regular_path
 from transcriptbot.media.errors import PipelineError
-from transcriptbot.media.planning import RATE, ChunkPlan, plan_chunks, silence_ranges
+from transcriptbot.media.planning import RATE, ChunkPlan, Envelope, plan_chunks, silence_ranges
 
 FILTER = "aresample=16000,aformat=sample_fmts=s16:sample_rates=16000:channel_layouts=mono"
 
@@ -55,6 +56,7 @@ async def run_tool(
     max_pcm_bytes: int = 0,
     output: Path | None = None,
     maximum: int = 0,
+    on_pcm: Callable[[bytes], None] | None = None,
 ) -> tuple[int, str]:
     try:
         process = await asyncio.create_subprocess_exec(
@@ -73,6 +75,8 @@ async def run_tool(
             size += len(block)
             if size > max_pcm_bytes:
                 raise PipelineError("duration_limit" if max_pcm_bytes else "invalid_media")
+            if on_pcm is not None:
+                on_pcm(block)
         return size
 
     async def errors() -> str:
@@ -127,10 +131,12 @@ async def analyze(source: Path, stream: int, settings: Settings) -> list[ChunkPl
         "pipe:1",
     ]
     # pipe is only an output protocol; the input whitelist remains file-only.
+    envelope = Envelope()
     size, log = await run_tool(
         command,
         timeout=settings.ffmpeg_timeout_seconds,
         max_pcm_bytes=int(settings.max_duration_seconds * RATE) * 2,
+        on_pcm=envelope.feed,
     )
     if not size or size % 2:
         raise PipelineError("invalid_media")
@@ -140,6 +146,7 @@ async def analyze(source: Path, stream: int, settings: Settings) -> list[ChunkPl
         target=round(settings.chunk_seconds * RATE),
         window=round(settings.silence_window_seconds * RATE),
         minimum=round(settings.silence_min_seconds * RATE),
+        power=envelope.power,
     )
 
 

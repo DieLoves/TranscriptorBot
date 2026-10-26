@@ -1,6 +1,7 @@
 """Recoverable cleanup; never remove files held by active worker operations."""
 
 import logging
+import re
 from pathlib import Path
 
 from transcriptbot.config import Settings
@@ -10,6 +11,7 @@ from transcriptbot.operations.files import (
     unlink_file,
     workspace_files,
 )
+from transcriptbot.storage.database import StorageError
 from transcriptbot.storage.repository import Repository
 from transcriptbot.storage.worker_lock import DeliveryLock
 
@@ -33,6 +35,7 @@ class Cleanup:
             await self.repository.prune_inbox()
         errors = 0
         if startup:
+            errors += await self.remove_stale_locks()
             # Only known jobs: unknown directories and all Bot API internals are untouched.
             for job in await self.repository.retained_jobs():
                 directory = self.settings.work_dir / str(job.id)
@@ -73,6 +76,7 @@ class Cleanup:
                     continue
                 remove_directory(directory, self.settings.work_dir)
                 await self.repository.finish_cleanup(job)
+                lease.discard()
                 self.retry_at.pop(job.id, None)
             except OSError as exc:
                 self.retry_at[job.id] = now + self.settings.cleanup_interval_seconds
@@ -89,6 +93,30 @@ class Cleanup:
                     (now, errors, "cleanup_failed" if errors else None),
                 )
             )
+
+    async def remove_stale_locks(self) -> int:
+        """Remove delivery locks left by jobs cleaned before locks were discarded."""
+        database = self.settings.sqlite_path
+        pattern = re.escape(database.name + ".delivery-") + r"([1-9]\d{0,17})\.lock"
+        try:
+            found = [
+                int(match[1])
+                for path in database.parent.iterdir()
+                if (match := re.fullmatch(pattern, path.name))
+            ]
+        except OSError:
+            logger.warning("event=stale_lock_scan_failed error_code=cleanup_io")
+            return 1
+        errors = 0
+        for job_id in await self.repository.finished_jobs(found):
+            lease = DeliveryLock(database, job_id)
+            try:
+                if lease.try_acquire() and not lease.discard():
+                    raise StorageError("stale lock remains")
+            except StorageError:
+                errors += 1
+                logger.warning("job_id=%s event=stale_lock_failed error_code=cleanup_io", job_id)
+        return errors
 
     async def reconcile(self, job, directory: Path) -> None:
         """Validate published checkpoints using the same invariants as normal recovery."""

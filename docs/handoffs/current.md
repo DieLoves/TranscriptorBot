@@ -1,6 +1,25 @@
 # Handoff
 
-Дата: 2026-10-09. Проект: `/home/dev/workspace/projects/transcriptbot`.
+Дата: 2026-10-26 (раздел ниже); остальное — состояние на 2026-10-09.
+Проект: `/home/dev/workspace/projects/transcriptbot`.
+
+## Повторный аудит 2026-10-26
+
+Отчёт: [security-audit-2026-10-26.md](security-audit-2026-10-26.md).
+Исправлены: критические `certifi` и `brotli`/`brotlicffi` в lock, устаревший
+YouTube-тест, бесконечный restart бота на «ядовитом» update и worker на
+«ядовитом» задании (`internal_error` с ограниченными повторами), утечка
+`*.delivery-<id>.lock`, квадратичная перепроверка ответов частей. По замеру на
+реальной лекции: резервный разрез в самом тихом участке при шуме и контекст
+предыдущей части в `prompt` (спецификация обновлена).
+Полный pytest **449 passed**, Ruff/lock/build чисты, OSV 0. Актуальный кандидат —
+`transcriptbot-app:candidate-20261026b` (media-format gate и полный check_containers прошли).
+По подтверждению пользователя образ применён 2026-10-26 11:01 UTC: backup
+`/data/backups/before-chunking-20261026.sqlite3` (проверен), образ отката
+`transcriptbot-app:before-chunking-20261026` (`sha256:15fc8104…`), `transcriptbot-app:audit`
+= `sha256:fbba0294…`. bot/worker healthy, RestartCount 0, очередь пуста, ошибок очистки нет;
+при старте удалены все 20 осиротевших `*.delivery-*.lock`. Bot API и тома не трогались.
+Commit/push — только по отдельному подтверждению.
 
 ## Objective
 

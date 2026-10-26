@@ -1,14 +1,16 @@
 """Offline container checks using synthetic credentials and disposable volumes."""
 
 import json
+import os
 import subprocess
 import time
 import uuid
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-APP_IMAGE = "transcriptbot-app:audit"
-API_IMAGE = "transcriptbot-bot-api:audit"
+# Override to check a candidate image before it replaces the running tag.
+APP_IMAGE = os.environ.get("TRANSCRIPTBOT_APP_IMAGE", "transcriptbot-app:audit")
+API_IMAGE = os.environ.get("TRANSCRIPTBOT_API_IMAGE", "transcriptbot-bot-api:audit")
 TEST_ENV = """GROQ_API_KEY=gsk_container_test
 TELEGRAM_BOT_TOKEN=12345:container_test
 TELEGRAM_API_ID=12345

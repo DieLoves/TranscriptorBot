@@ -23,6 +23,7 @@ from transcriptbot.operations.health import diagnostics, heartbeat
 from transcriptbot.storage.database import Database, StorageError
 from transcriptbot.storage.models import Phase, SourceKind, SourceRef
 from transcriptbot.storage.repository import Repository
+from transcriptbot.storage.worker_lock import DeliveryLock
 from transcriptbot.telegram.store import TelegramStore
 from transcriptbot.worker import process_job
 
@@ -101,6 +102,45 @@ async def test_completion_cleanup_keeps_history_and_delivery_markers(repository,
     )
     assert all(row[0] == "sent" and row[1] and row[2] is None for row in markers)
     assert await repository.job_assets(job_id) == []
+
+
+def delivery_lock(settings, job_id):
+    return settings.sqlite_path.with_name(f"{settings.sqlite_path.name}.delivery-{job_id}.lock")
+
+
+async def test_finished_cleanup_removes_its_delivery_lock(repository, settings):
+    job_id, _directory = await create(repository, settings)
+    await cancel(repository, job_id)
+    lease = DeliveryLock(settings.sqlite_path, job_id)
+    assert lease.try_acquire()
+    lease.release()
+    assert delivery_lock(settings, job_id).exists()
+    await Cleanup(settings, repository).run()
+    assert not (await repository.get_job(job_id, owner_id=123)).cleanup_pending
+    # One empty file per job used to accumulate in /data forever.
+    assert not delivery_lock(settings, job_id).exists()
+
+
+async def test_startup_removes_only_stale_delivery_locks(repository, settings):
+    finished, _ = await create(repository, settings)
+    await cancel(repository, finished)
+    await Cleanup(settings, repository).run()
+    retained, _ = await create(repository, settings, update=2)
+    failed = await repository.fail(await repository.claim_next(), error_code="groq_network")
+    assert failed.id == retained
+    queued, _ = await create(repository, settings, update=3)
+    names = [delivery_lock(settings, job_id) for job_id in (finished, retained, queued, 999)]
+    service = [settings.sqlite_path.with_name(settings.sqlite_path.name + ".worker.lock")]
+    for path in (*names, *service):
+        path.touch()
+    held = DeliveryLock(settings.sqlite_path, queued)
+    assert held.try_acquire()
+    try:
+        await Cleanup(settings, repository).run(startup=True)
+    finally:
+        held.release()
+    assert [path.exists() for path in names] == [False, True, True, True]
+    assert all(path.exists() for path in service)
 
 
 async def test_failed_retention_and_expiry_disable_resume_before_unlink(repository, settings):

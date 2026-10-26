@@ -12,6 +12,7 @@ from transcriptbot.downloaders.files import job_directory, regular_path
 from transcriptbot.media.artifacts import (
     RESULT_LIMIT,
     assemble,
+    context_prompt,
     digest,
     publish_bytes,
     publish_checkpoint,
@@ -31,6 +32,9 @@ class MediaPipeline:
         self.settings, self.repository, self.groq = settings, repository, groq
         self.store = TelegramStore(repository)
         self._verified: dict[int, tuple] = {}
+        # Acknowledged checkpoints already validated by this process. Rereading all
+        # earlier responses on every step is quadratic; assembly rereads them anyway.
+        self._checked: set[tuple] = set()
 
     async def alive(self, job: Job) -> bool:
         current = await self.repository.get_job(job.id, owner_id=job.owner_id)
@@ -155,19 +159,26 @@ class MediaPipeline:
         chunks = await self.repository.chunks(job.id)
         if not chunks:
             raise PipelineError("checkpoint_invalid")
+        owner = (job.id, job.generation)
+        self._checked = {key for key in self._checked if key[:2] == owner}
         for chunk in chunks:
             path = directory / f"response-{chunk.number:04d}.json"
             if chunk.response_path is not None:
-                self.response(job, manifest, chunk, path)
-                await asyncio.sleep(0)
+                key = (*owner, chunk.number, chunk.response_sha256)
+                if key not in self._checked:
+                    self.response(job, manifest, chunk, path)
+                    self._checked.add(key)
+                    await asyncio.sleep(0)
                 continue
             await self.track(job, path)
             if path.exists() or path.is_symlink():
                 # Recover the crash between fsync/publication and SQLite acknowledgement.
                 self.response(job, manifest, chunk, path)
+                sha256 = digest(path)
                 if await self.repository.save_chunk_response(
-                    job, number=chunk.number, path=str(path), sha256=digest(path)
+                    job, number=chunk.number, path=str(path), sha256=sha256
                 ):
+                    self._checked.add((*owner, chunk.number, sha256))
                     await self.repository.reset_chunk_attempts(job)
                 return
             seconds = (chunk.end_sample - chunk.start_sample) / RATE
@@ -192,6 +203,12 @@ class MediaPipeline:
                 )
             if not await self.alive(job):
                 return
+            prompt = None
+            if chunk.number:
+                # Read before reserving quota; deterministic, so a retry sends the same context.
+                previous = chunks[chunk.number - 1]
+                before = directory / f"response-{previous.number:04d}.json"
+                prompt = context_prompt(self.response(job, manifest, previous, before)["text"])
             upload = directory / "current.wav"
             await self.track(job, upload)
             if (
@@ -224,7 +241,7 @@ class MediaPipeline:
             if usage_id is None or not await self.alive(job):
                 return
             try:
-                response = await self.groq.transcribe(upload)
+                response = await self.groq.transcribe(upload, prompt)
             except PipelineError as exc:
                 if not exc.uncertain:
                     await self.repository.finish_groq_usage(usage_id, outcome="rejected")
@@ -244,6 +261,7 @@ class MediaPipeline:
             if await self.repository.save_chunk_response(
                 job, number=chunk.number, path=str(path), sha256=sha256
             ):
+                self._checked.add((*owner, chunk.number, sha256))
                 await self.repository.reset_chunk_attempts(job)
             return
         await self.repository.advance(job, Phase.ASSEMBLE)

@@ -12,20 +12,38 @@ from pathlib import Path
 import pytest
 
 from transcriptbot.config import Settings
-from transcriptbot.media.artifacts import assemble, publish_bytes, publish_checkpoint, read_json
+from transcriptbot.media.artifacts import (
+    PROMPT_BYTES,
+    assemble,
+    context_prompt,
+    publish_bytes,
+    publish_checkpoint,
+    read_json,
+)
 from transcriptbot.media.errors import PipelineError
-from transcriptbot.media.planning import RATE, ChunkPlan, plan_chunks, silence_ranges
+from transcriptbot.media.planning import (
+    FRAME,
+    RATE,
+    ChunkPlan,
+    Envelope,
+    plan_chunks,
+    silence_ranges,
+)
 from transcriptbot.media.tools import analyze, extract, input_command, run_tool
 from transcriptbot.storage.models import Chunk
 
 
-def wav(path, seconds=5.01, pauses=(), rate=RATE, channels=1):
+def wav(path, seconds=5.01, pauses=(), rate=RATE, channels=1, quiet=()):
+    def amplitude(n):
+        if any(left <= n / rate < right for left, right in pauses):
+            return 0
+        # Quieter, but still far above the -35 dB silence threshold (noisy pause).
+        return 1500 if any(left <= n / rate < right for left, right in quiet) else 8000
+
     samples = array(
         "h",
         (
-            0
-            if any(left <= n / rate < right for left, right in pauses)
-            else round(8000 * math.sin(n * 2 * math.pi * 440 / rate))
+            round(amplitude(n) * math.sin(n * 2 * math.pi * 440 / rate))
             for n in range(round(seconds * rate))
             for _ in range(channels)
         ),
@@ -71,6 +89,57 @@ async def test_exact_sample_coverage_and_pause_boundaries(tmp_path, small_settin
         assert path.stat().st_size <= small_settings.wav_target_upload_bytes
     assert joined == original
     assert not (tmp_path / "current.wav.part").exists()
+
+
+async def test_noisy_recording_is_cut_in_quietest_part_not_mid_speech(tmp_path, small_settings):
+    source = tmp_path / "source.wav"
+    wav(source, quiet=[(1.6, 1.9)])
+    chunks = await analyze(source, 0, small_settings)
+    # Background noise hides every pause from silencedetect; a hard cut would land at 2 s.
+    assert abs(chunks[0].end_sample / RATE - 1.75) < 0.011
+    assert chunks[-1].end_sample == round(5.01 * RATE)
+
+
+def test_planner_falls_back_to_quietest_run_without_detected_pauses():
+    total, target, window, minimum = 5 * RATE, 2 * RATE, RATE // 2, round(0.3 * RATE)
+    power = array("d", [1.0] * (total // FRAME))
+    for index in range(162, 192):
+        power[index] = 0.1
+    power[150] = 0.0  # One quiet frame is shorter than the minimum pause.
+    options = {"target": target, "window": window, "minimum": minimum}
+    chunks = plan_chunks(total, [], power=power, **options)
+    assert chunks[0].end_sample == 162 * FRAME + 15 * FRAME
+    assert plan_chunks(total, [], **options)[0].end_sample == target
+    # A detected pause keeps priority over the energy envelope.
+    detected = [(round(1.55 * RATE), round(1.95 * RATE))]
+    assert plan_chunks(total, detected, power=power, **options)[0].end_sample == 1.75 * RATE
+    assert all(chunk.end_sample > chunk.start_sample for chunk in chunks)
+    assert chunks[-1].end_sample == total
+
+
+def test_envelope_handles_pipe_blocks_not_aligned_to_frames():
+    samples = array("h", ((index * 37) % 600 - 300 for index in range(1000)))
+    data = samples.tobytes()
+    envelope = Envelope()
+    for offset in range(0, len(data), 333):  # Odd sizes split samples as well as frames.
+        envelope.feed(data[offset : offset + 333])
+    expected = [
+        sum(value * value for value in samples[start : start + FRAME]) / FRAME
+        for start in range(0, len(samples) - FRAME + 1, FRAME)
+    ]
+    assert list(envelope.power) == expected
+
+
+def test_context_prompt_is_a_bounded_word_aligned_tail():
+    assert context_prompt("") is None and context_prompt(" \n ") is None
+    assert context_prompt(" Короткий\n  текст. ") == "Короткий текст."
+    prompt = context_prompt("слово, " * 100 + "конец.")
+    # Whisper accepts 224 byte-level tokens; every token covers at least one byte.
+    assert len(prompt.encode()) <= PROMPT_BYTES
+    assert prompt.startswith("слово,") and prompt.endswith("конец.")
+    unspaced = context_prompt("漢字" * 200)
+    assert unspaced and len(unspaced.encode()) <= PROMPT_BYTES
+    assert unspaced.encode().decode("utf-8") == unspaced
 
 
 async def test_ten_minute_chunk_and_short_tail(tmp_path, settings):

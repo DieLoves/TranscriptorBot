@@ -8,7 +8,7 @@ import pytest
 
 from transcriptbot.downloaders.errors import DownloadError
 from transcriptbot.downloaders.service import child_process
-from transcriptbot.storage.database import Database
+from transcriptbot.storage.database import Database, StorageError
 from transcriptbot.storage.models import SourceKind, SourceRef
 from transcriptbot.storage.repository import Repository
 from transcriptbot.worker import download_job
@@ -70,6 +70,44 @@ async def test_download_failure_retry_fifo_and_exhaustion(repository, settings):
     assert failed.status == "failed"
     assert failed.error_code == "download_network"
     assert (await repository.claim_next()).id == 2
+
+
+async def test_unexpected_download_error_is_bounded_instead_of_crash_loop(
+    repository, settings, caplog
+):
+    job = await create(repository)
+
+    class Downloader:
+        async def acquire(self, expected):
+            raise KeyError("https://example.com/?token=secret")
+
+    downloader = Downloader()
+    downloader.settings = settings
+    with caplog.at_level("INFO"):
+        for attempt in range(settings.max_retries + 1):
+            await download_job(job, downloader, repository, asyncio.Event())
+            job = await repository.get_job(job.id, owner_id=123)
+            assert job.error_code == "internal_error"
+            if attempt < settings.max_retries:
+                assert job.status == "retry_wait"
+                repository.clock = lambda deadline=job.next_attempt_at: deadline + 1
+                job = await repository.claim_next()
+    assert job.status == "failed" and job.resumable
+    assert "KeyError" in caplog.text and "secret" not in caplog.text
+
+
+async def test_storage_failure_still_stops_worker(repository, settings):
+    job = await create(repository)
+
+    class Downloader:
+        async def acquire(self, expected):
+            raise StorageError("Ошибка доступа к SQLite")
+
+    downloader = Downloader()
+    downloader.settings = settings
+    with pytest.raises(StorageError):
+        await download_job(job, downloader, repository, asyncio.Event())
+    assert (await repository.get_job(job.id, owner_id=123)).status == "active"
 
 
 async def test_retry_after_survives_repository_restart(repository, settings):

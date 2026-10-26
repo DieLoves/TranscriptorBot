@@ -62,3 +62,23 @@ class DeliveryLock(WorkerLock):
         except LockBusy:
             return False
         return True
+
+    def discard(self) -> bool:
+        """Unlink while held, only after the job has finished cleanup for good.
+
+        Completed, cancelled and expired jobs never deliver again, and every sender
+        rechecks the job after taking its lease. Whether a late sender locks the old
+        inode or creates a new one, it performs no Telegram I/O for this job.
+        A failed unlink leaves an empty file for the next startup sweep.
+        """
+        if self._descriptor is None:
+            raise StorageError("Блокировка доставки не удерживается")
+        try:
+            os.unlink(self.path)
+        except FileNotFoundError:
+            pass
+        except OSError:
+            return False
+        finally:
+            self.release()
+        return True

@@ -12,6 +12,9 @@ from transcriptbot.media.planning import RATE
 
 RESPONSE_LIMIT = 8_000_000
 RESULT_LIMIT = 16_000_000
+# Whisper accepts 224 prompt tokens. Byte-level BPE tokens cover at least one byte
+# each, so this bound holds for any script without a tokenizer.
+PROMPT_BYTES = 200
 
 
 def validate_depth(value: object) -> None:
@@ -69,6 +72,20 @@ def validate_response(value: dict) -> None:
         json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
     except (KeyError, ValueError, TypeError, OverflowError, RecursionError):
         raise PipelineError("groq_invalid_response", retryable=True, uncertain=True) from None
+
+
+def context_prompt(text: str) -> str | None:
+    """End of the previous part's text; parts starting mid-sentence otherwise lose
+    punctuation and misrecognise words. Only recognition output, never edited."""
+    text = " ".join(text.split())
+    encoded = text.encode("utf-8")
+    if len(encoded) <= PROMPT_BYTES:
+        return text or None
+    # Drop a character split by the byte limit, then a partial leading word.
+    tail = encoded[-PROMPT_BYTES:].decode("utf-8", errors="ignore")
+    if " " in tail:
+        tail = tail.split(" ", 1)[1]
+    return tail or None
 
 
 def digest(path: Path) -> str:

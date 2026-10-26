@@ -23,15 +23,21 @@ async def repository(settings):
     await database.close()
 
 
+class SimulatedCrash(BaseException):
+    """Process death: unlike application errors, it must not be turned into a job state."""
+
+
 class FakeGroq:
     def __init__(self):
         self.calls = 0
         self.responses = []
+        self.prompts = []
         self.error = None
 
-    async def transcribe(self, path):
+    async def transcribe(self, path, prompt=None):
         assert path.is_file()
         self.calls += 1
+        self.prompts.append(prompt)
         if self.error:
             raise self.error
         response = {
@@ -142,7 +148,7 @@ async def test_single_raw_json_and_empty_result(repository, settings, empty):
     raw = {"text": "" if empty else "  Слова.  ", "language": "ru", "unknown": [1], "segments": []}
 
     class Groq:
-        async def transcribe(self, path):
+        async def transcribe(self, path, prompt=None):
             return raw
 
     job = await create(repository, settings, seconds=1)
@@ -158,7 +164,7 @@ async def test_assembly_bounds_total_responses_before_loading_all_parts(
     class Groq:
         calls = 0
 
-        async def transcribe(self, path):
+        async def transcribe(self, path, prompt=None):
             self.calls += 1
             return {"text": "x" * 2048, "segments": []}
 
@@ -200,10 +206,10 @@ async def test_restart_saved_and_orphan_response_no_api_repeat(
     save = repository.save_chunk_response
 
     async def crash(*args, **kwargs):
-        raise RuntimeError("simulated process crash before SQLite commit")
+        raise SimulatedCrash
 
     monkeypatch.setattr(repository, "save_chunk_response", crash)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(SimulatedCrash):
         await step(repository, pipeline)
     assert groq.calls == 2
     chunks = await repository.chunks(job.id)
@@ -227,10 +233,10 @@ async def test_prepare_checkpoint_survives_before_database_commit(
     save = repository.plan_chunks
 
     async def crash(*args, **kwargs):
-        raise RuntimeError("crash")
+        raise SimulatedCrash
 
     monkeypatch.setattr(repository, "plan_chunks", crash)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(SimulatedCrash):
         await step(repository, pipeline)
     assert not await repository.chunks(job.id)
     assert (settings.work_dir / str(job.id) / "chunks.json").is_file()
@@ -256,11 +262,11 @@ async def test_assembly_recovery_after_only_txt_publication(repository, settings
 
     def crash(path, value):
         if path.name.endswith("json"):
-            raise RuntimeError("crash before final JSON publication")
+            raise SimulatedCrash
         publish_bytes(path, value)
 
     monkeypatch.setattr("transcriptbot.media.service.publish_bytes", crash)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(SimulatedCrash):
         await step(repository, pipeline)
     assert (settings.work_dir / str(job.id) / "result.txt").exists()
     monkeypatch.setattr("transcriptbot.media.service.publish_bytes", publish_bytes)
@@ -293,6 +299,60 @@ async def test_corrupted_checkpoint_never_retranscribed(repository, settings, co
     assert current.status == "failed"
     assert groq.calls == 1
     assert current.error_code in {"checkpoint_invalid", "source_changed", "unsafe_path"}
+
+
+async def test_each_part_gets_the_previous_text_as_context(repository, small_settings):
+    await create(repository, small_settings)
+    groq = FakeGroq()
+    pipeline = MediaPipeline(small_settings, repository, groq)
+    await to_deliver(repository, pipeline)
+    # Parts starting mid-sentence lose punctuation and words without this context.
+    assert groq.prompts == [None, *[f"Часть {number}." for number in range(1, groq.calls)]]
+
+
+async def test_transcription_validates_each_saved_checkpoint_once_per_process(
+    repository, small_settings, monkeypatch
+):
+    job = await create(repository, small_settings)
+    pipeline = MediaPipeline(small_settings, repository, FakeGroq())
+    calls = []
+    original = pipeline.response
+
+    def response(job, manifest, chunk, path):
+        calls.append(chunk.number)
+        return original(job, manifest, chunk, path)
+
+    monkeypatch.setattr(pipeline, "response", response)
+    current = await step(repository, pipeline)
+    while current.phase == Phase.TRANSCRIBE:
+        current = await step(repository, pipeline)
+    assert current.phase == Phase.ASSEMBLE
+    assert len(await repository.chunks(job.id)) >= 3
+    # Rereading every earlier response on each step is quadratic for long records.
+    assert all(calls.count(number) <= 1 for number in calls)
+    calls.clear()
+    assert (await step(repository, pipeline)).phase == Phase.DELIVER
+    assert sorted(calls) == list(range(len(await repository.chunks(job.id))))
+
+
+async def test_unexpected_pipeline_error_retries_then_fails_resumably(repository, settings, caplog):
+    job = await create(repository, settings, seconds=1)
+    groq = FakeGroq()
+    pipeline = MediaPipeline(settings, repository, groq)
+    await step(repository, pipeline)
+    groq.error = TypeError("raw https://api.example/?key=secret")
+    with caplog.at_level("INFO"):
+        for attempt in range(settings.max_retries + 1):
+            current = await step(repository, pipeline)
+            assert current.error_code == "internal_error"
+            if attempt < settings.max_retries:
+                assert current.status == "retry_wait"
+                repository.clock = lambda deadline=current.next_attempt_at: deadline
+    assert current.status == "failed" and current.resumable
+    assert current.phase == Phase.TRANSCRIBE
+    assert "TypeError" in caplog.text and "secret" not in caplog.text
+    groq.error = None
+    assert (await repository.chunks(job.id))[0].response_path is None
 
 
 @pytest.mark.parametrize("quota", [False, True])
@@ -371,7 +431,7 @@ async def test_cancel_or_shutdown_during_groq(repository, settings, shutdown_req
     started, stopped, shutdown = asyncio.Event(), asyncio.Event(), asyncio.Event()
 
     class Groq:
-        async def transcribe(self, path):
+        async def transcribe(self, path, prompt=None):
             started.set()
             try:
                 await asyncio.Future()
@@ -406,7 +466,7 @@ async def test_late_response_after_cancel_is_not_published(repository, settings)
     job = await create(repository, settings, seconds=1)
 
     class Groq:
-        async def transcribe(self, path):
+        async def transcribe(self, path, prompt=None):
             await repository.cancel(update_id=2, job_id=job.id, owner_id=123, generation=0)
             return {"text": "late", "segments": []}
 

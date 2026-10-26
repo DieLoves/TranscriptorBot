@@ -28,7 +28,13 @@ class TelegramRuntimeError(Exception):
 async def process_update(
     bot: Bot, dispatcher: Dispatcher, store: TelegramStore, update: Update
 ) -> None:
-    request = await dispatcher.feed_update(bot, update)
+    try:
+        request = await dispatcher.feed_update(bot, update)
+    except Exception as exc:
+        # Parsing has no I/O. A deterministic failure must not keep the offset
+        # uncommitted and restart the bot forever; the message may hold secrets.
+        logger.warning("event=update_parse_failed error_type=%s", type(exc).__name__)
+        request = UNHANDLED
     if request is UNHANDLED or not isinstance(request, Request):
         request = Request("ignored")
     await store.accept(update.update_id, request)

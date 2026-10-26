@@ -386,6 +386,26 @@ async def test_callback_routes_owner_and_generation(env, settings):
     assert len([row for row in await rows(store) if row["callback_id"] == "callback-6"]) == 1
 
 
+async def test_unexpected_parser_error_commits_update_instead_of_crash_loop(
+    env, settings, monkeypatch, caplog
+):
+    repository, store, _clock, bot, _session, _sender = env
+
+    def broken(*args):
+        raise AttributeError("raw https://example.com/?token=secret")
+
+    monkeypatch.setattr("transcriptbot.telegram.requests.message_request", broken)
+    dispatcher = make_dispatcher(settings, "BotName")
+    with caplog.at_level("INFO"):
+        await process_update(
+            bot, dispatcher, store, Update(update_id=30, message=message("https://example.com/a"))
+        )
+    # Otherwise the same uncommitted update would restart the bot forever.
+    assert await store.offset() == 31
+    assert await repository.list_jobs(owner_id=123) == []
+    assert "AttributeError" in caplog.text and "secret" not in caplog.text
+
+
 async def test_poll_offset_only_after_each_committed_update(env, settings, monkeypatch):
     repository, store, _clock, bot, session, _ = env
     batch = [

@@ -15,11 +15,33 @@ from transcriptbot.groq_adapter import GroqAdapter
 from transcriptbot.media.errors import PipelineError
 from transcriptbot.media.service import MediaPipeline
 from transcriptbot.operations.cleanup import Cleanup
+from transcriptbot.storage.database import StorageError
 from transcriptbot.storage.models import Job, JobStatus, Phase, SourceKind
 from transcriptbot.storage.repository import Repository
 
 logger = logging.getLogger(__name__)
 RETRY_DELAYS = (5, 15, 45, 135, 300)
+
+
+async def unexpected_failure(job: Job, exc: Exception, repository: Repository, settings) -> None:
+    """Bound an unknown failure: a crash would replay the same job after every restart."""
+    # The text of a library exception may contain URLs, tokens or response bodies.
+    logger.warning(
+        "job_id=%s event=unexpected_failure phase=%s error_type=%s",
+        job.id,
+        job.phase,
+        type(exc).__name__,
+    )
+    current = await repository.get_job(job.id, owner_id=job.owner_id)
+    if current is None or current.status != JobStatus.ACTIVE:
+        return
+    if current.attempts < settings.max_retries:
+        delay = RETRY_DELAYS[min(current.attempts, len(RETRY_DELAYS) - 1)]
+        await repository.defer(
+            current, until=repository.clock() + delay, error_code="internal_error"
+        )
+    else:
+        await repository.fail(current, error_code="internal_error")
 
 
 async def download_job(job: Job, downloader, repository: Repository, shutdown: asyncio.Event):
@@ -48,6 +70,10 @@ async def download_job(job: Job, downloader, repository: Repository, shutdown: a
             await repository.fail(job, error_code=exc.code)
     except OSError:
         await repository.fail(job, error_code="download_io")
+    except StorageError:
+        raise
+    except Exception as exc:
+        await unexpected_failure(job, exc, repository, downloader.settings)
     finally:
         if not operation.done():
             operation.cancel()
@@ -141,6 +167,10 @@ async def process_job(job: Job, pipeline, repository: Repository, shutdown: asyn
             await repository.fail(job, error_code=exc.code)
     except OSError:
         await repository.fail(job, error_code="pipeline_io")
+    except StorageError:
+        raise
+    except Exception as exc:
+        await unexpected_failure(job, exc, repository, pipeline.settings)
     finally:
         if not operation.done():
             operation.cancel()

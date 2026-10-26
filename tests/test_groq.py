@@ -51,6 +51,25 @@ async def test_actual_sdk_multipart_and_exact_raw_object(settings, tmp_path):
         await groq.close()
 
 
+async def test_context_prompt_is_sent_when_given(settings, tmp_path):
+    bodies = []
+
+    async def handler(request):
+        bodies.append(await request.aread())
+        return httpx.Response(200, json={"text": "Текст."})
+
+    groq = await adapter(settings, handler)
+    source = tmp_path / "current.wav"
+    source.write_bytes(b"RIFF-test")
+    try:
+        await groq.transcribe(source, prompt="Предыдущий текст.")
+        await groq.transcribe(source, prompt=None)
+    finally:
+        await groq.close()
+    assert b'name="prompt"' in bodies[0] and "Предыдущий текст.".encode() in bodies[0]
+    assert b'name="prompt"' not in bodies[1]
+
+
 @pytest.mark.parametrize(
     ("status", "code", "quota", "retryable", "uncertain"),
     [
