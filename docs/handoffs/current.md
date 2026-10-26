@@ -19,7 +19,7 @@ YouTube-тест, бесконечный restart бота на «ядовито�
 `transcriptbot-app:before-chunking-20261026` (`sha256:15fc8104…`), `transcriptbot-app:audit`
 = `sha256:fbba0294…`. bot/worker healthy, RestartCount 0, очередь пуста, ошибок очистки нет;
 при старте удалены все 20 осиротевших `*.delivery-*.lock`. Bot API и тома не трогались.
-Commit/push — только по отдельному подтверждению.
+По указанию пользователя изменения опубликованы в origin/main коммитом `f3c2573`.
 
 ## Objective
 

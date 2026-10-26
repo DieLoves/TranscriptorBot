@@ -98,3 +98,4 @@ inbox/outbox, optimistic revision/generation и раздельные блоки�
   `/data/backups/before-chunking-20261026.sqlite3`, образ отката
   `transcriptbot-app:before-chunking-20261026`; bot/worker на `sha256:fbba0294…`,
   healthy, RestartCount 0, очередь пуста; осиротевшие delivery-lock (20) удалены при старте.
+- Опубликовано в origin/main коммитом `f3c2573` по указанию пользователя.
